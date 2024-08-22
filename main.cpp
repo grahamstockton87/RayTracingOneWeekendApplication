@@ -47,11 +47,20 @@ bool delete_image(const char* filename) {
 
 using color = vec3; 
 
+inline double clamp(double value, double min_val, double max_val) {
+    if (value < min_val) return min_val;
+    if (value > max_val) return max_val;
+    return value;
+}
+
 color ray_color(const ray& r, const hittable& world) {
     hit_record rec;
 
     if (world.hit(r, 0, infinity, rec)) {
-        return 0.5 * (rec.normal + color(1, 1, 1));
+        //return 0.5 * (rec.normal + color(1, 1, 1));
+        double intensity = dot(r.direction(),rec.normal);
+        double inverted_intensity = 256 - intensity;
+        return color(inverted_intensity, inverted_intensity, inverted_intensity);
     }
 
     vec3 unit_direction = unit_vector(r.direction());
@@ -115,14 +124,17 @@ int main() {
 
     
 
-    const char* image_name = "SphereWithBackground.png";
+    const char* image_name = "SphereWithBackgroundFakedShading.png";
 
     if (fileExists(image_name)) {
-        std::cout << "File already exists. Would you like to delete? (y/n)" << image_name << std::endl;
+        std::cout << "File already exists. Would you like to delete? (y/n)" << std::endl;
         std::string input;
         std::cin >> input;
         if (input == "y") {
             if (!delete_image(image_name)) { return -1; }
+        }
+        else {
+            return 0;
         }
         
     }
@@ -133,7 +145,7 @@ int main() {
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 
     for (int j = 0; j < image_height; ++j) {
-        float percent = 100.0f * (j / float(image_height - 1));
+        float percent = 100.0f * (1.0f - (j / float(image_height - 1)));
         std::cerr << "\rPercent Rendered: " << static_cast <int>(100 - percent) << "% " << std::flush;
         for (int i = 0; i < image_width; ++i) {
 
@@ -157,7 +169,8 @@ int main() {
 
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 
-    std::cout << "\nDone rendering " << image_name << " in " << (std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()) / 1000 << " seconds" << std::endl;
+    double time_taken = (std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count());
+    std::cout << "\nDone rendering " << image_name << " in " << time_taken << " miliseconds" << std::endl;
 
     stbi_write_png(image_name, image_width, image_height, CHANNEL_NUM, pixels, image_width * CHANNEL_NUM);
 

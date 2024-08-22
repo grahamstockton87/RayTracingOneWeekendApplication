@@ -1,2 +1,7 @@
 ﻿  main.cpp
+C:\Users\graha\Documents\Visual Studio Projects 2024\Coding Projects\RayTracingOneWeekendApplication\RayTracingOneWeekendApplication\main.cpp(172,23): warning C4244: 'initializing': conversion from '_Rep' to 'double', possible loss of data
+          with
+          [
+              _Rep=__int64
+          ]
   RayTracingOneWeekendApplication.vcxproj -> C:\Users\graha\Documents\Visual Studio Projects 2024\Coding Projects\RayTracingOneWeekendApplication\x64\Debug\RayTracingOneWeekendApplication.exe
