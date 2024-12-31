@@ -1,17 +1,15 @@
-#include <iostream>
+#include "rtweekend.h"
+
+#include "hittable_list.h"
+#include "hittable.h"
+#include "sphere.h"
+
 #include <string>
 #include <future>
 #include <algorithm>
 #include <fstream>
 
 #include "windows.h"
-
-#include "rtweekend.h"
-
-#include "hittable.h"
-#include "hittable_list.h"
-#include "sphere.h"
-
 
 #define STBI_MSC_SECURE_CRT
 #define STB_IMAGE_IMPLEMENTATION
@@ -56,7 +54,7 @@ inline double clamp(double value, double min_val, double max_val) {
 color ray_color(const ray& r, const hittable& world) {
     hit_record rec;
 
-    if (world.hit(r, 0, infinity, rec)) {
+    if (world.hit(r, interval(0, infinity), rec)) {
         //return 0.5 * (rec.normal + color(1, 1, 1));
         double intensity = dot(r.direction(),rec.normal);
         double inverted_intensity = 256 - intensity;
@@ -72,8 +70,6 @@ color ray_color(const ray& r, const hittable& world) {
 
 int main() {
 
-
-    
 
     const int image_width = 1024;
     const auto aspect_ratio = 16.0 / 9.0;
@@ -123,8 +119,7 @@ int main() {
     // Image
 
     
-
-    const char* image_name = "SphereWithBackgroundFakedShading.png";
+    const char* image_name = "TESTING.png";
 
     if (fileExists(image_name)) {
         std::cout << "File already exists. Would you like to delete? (y/n)" << std::endl;
