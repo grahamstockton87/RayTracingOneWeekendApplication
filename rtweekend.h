@@ -24,12 +24,14 @@ inline double degrees_to_radians(double degrees) {
 }
 
 
+
 // Common Headers
 
 
 //#include "interval.h"
 //#include "ray.h"
 //#include "vec3.h"
+
 
 
 #endif
