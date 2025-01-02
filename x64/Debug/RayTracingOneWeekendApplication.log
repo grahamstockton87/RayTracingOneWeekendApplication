@@ -1,5 +1,5 @@
 ﻿  main.cpp
-C:\Users\graha\Documents\Visual Studio Projects 2024\Coding Projects\RayTracingOneWeekendApplication\RayTracingOneWeekendApplication\camera.h(66,21): warning C4244: 'initializing': conversion from '_Rep' to 'double', possible loss of data
+C:\Users\graha\Documents\Visual Studio Projects 2024\Coding Projects\RayTracingOneWeekendApplication\RayTracingOneWeekendApplication\camera.h(62,21): warning C4244: 'initializing': conversion from '_Rep' to 'double', possible loss of data
           with
           [
               _Rep=__int64

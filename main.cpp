@@ -62,10 +62,11 @@ int main() {
     world.add(make_shared<sphere>(point3(0, 0, -1), 0.5));
     world.add(make_shared<sphere>(point3(0, -100.5, -1), 100));
 
-    const char* image_name = "Images/New Camera WHODIS.png";
+    const char* image_name = "New Camera WHODIS.png";
 
     camera cam;
-    cam.rename_image(image_name);
+    cam.image_name = image_name;
+    cam.samples_per_pixel = 100;
    // cam.setName(image_name);
 
     // Image
