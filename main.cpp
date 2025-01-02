@@ -66,7 +66,7 @@ int main() {
 
     camera cam;
     cam.image_name = image_name;
-    cam.samples_per_pixel = 100;
+    cam.samples_per_pixel = 10;
    // cam.setName(image_name);
 
     // Image

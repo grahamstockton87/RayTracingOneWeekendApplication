@@ -1,4 +1,5 @@
 ﻿  main.cpp
+C:\Users\graha\Documents\Visual Studio Projects 2024\Coding Projects\RayTracingOneWeekendApplication\RayTracingOneWeekendApplication\vec3.h(95,14): warning C4804: '<=': unsafe use of type 'bool' in operation
 C:\Users\graha\Documents\Visual Studio Projects 2024\Coding Projects\RayTracingOneWeekendApplication\RayTracingOneWeekendApplication\camera.h(62,21): warning C4244: 'initializing': conversion from '_Rep' to 'double', possible loss of data
           with
           [
