@@ -5,6 +5,7 @@
 #include "vec3.h"
 #include "ray.h"
 #include "interval.h"
+#include "material.h"
 
 #include <string>
 #include <future>
@@ -20,12 +21,20 @@
 
 using color = vec3;
 
+// Conver linear to gamma
+inline double linear_to_gamma(double linear_component) {
+	if (linear_component > 0) {
+		return std::sqrt(linear_component);
+	}
+	return 0;
+}
+
 class camera {
 public:
 
 	const int image_width = 1024;
 	const double aspect_ratio = 16.0 / 9.0;
-	const char* image_name = "New Camera WHODIS";
+	const char* image_name = "Default Image";
 	int samples_per_pixel = 10;
 	int max_depth = 10;
 
@@ -47,9 +56,14 @@ public:
 				pixel_color *= pixel_samples_scale;
 				// clamp rgb values [0,1} to byte range [0,255]
 				static const interval intensity(0.000, 0.999);
-				int rByte = static_cast<int>(255.999 * intensity.clamp(pixel_color.x()));
-				int gByte = static_cast<int>(255.999 * intensity.clamp(pixel_color.y()));
-				int bByte = static_cast<int>(255.999 * intensity.clamp(pixel_color.z()));
+
+				auto r = linear_to_gamma(pixel_color.x());
+				auto g = linear_to_gamma(pixel_color.y());
+				auto b = linear_to_gamma(pixel_color.z());
+
+				int rByte = static_cast<int>(255.999 * intensity.clamp(r));
+				int gByte = static_cast<int>(255.999 * intensity.clamp(g));
+				int bByte = static_cast<int>(255.999 * intensity.clamp(b));
 
 				pixels[index++] = rByte;
 				pixels[index++] = gByte;
@@ -136,8 +150,12 @@ private:
 
 		if (world.hit(r, interval(0.001, infinity), rec)) {
 			//vec3 direction = random_on_hemisphere(rec.normal); 
-			vec3 direction = rec.normal + random_unit_vector();
-			return 0.1 * ray_color(ray(rec.p,direction), depth-1, world);
+			ray scatttered;
+			color attenuation;
+			if (rec.mat->scatter(r, rec, attenuation, scatttered)) {
+				return attenuation * ray_color(scatttered, depth - 1, world);
+			}
+			return color(0, 0, 0);
 		}
 
 		vec3 unit_direction = unit_vector(r.direction());
