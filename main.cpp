@@ -62,7 +62,7 @@ int main() {
     world.add(make_shared<sphere>(point3(0, 0, -1), 0.5));
     world.add(make_shared<sphere>(point3(0, -100.5, -1), 100));
 
-    const char* image_name = "New Camera WHODIS.png";
+    const char* image_name = "Lambertian Shading- Gamma Correction.png";
 
     camera cam;
     cam.image_name = image_name;
@@ -87,8 +87,6 @@ int main() {
 
     // Render
     cam.render(world);
-
-
 
 
     // Convert file name to wide string
