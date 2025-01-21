@@ -45,7 +45,7 @@ public:
         auto t = dot(v0v2, qvec) * invDet;
 
         // If the intersection occurs outside the given ray interval, return false
-        //if (t < ray_t.min || t > ray_t.max) return false;
+        if (t < ray_t.min || t > ray_t.max) return false;
 
         // Record the hit details
         rec.mat = mat;  // Use mat_ptr here to assign the material

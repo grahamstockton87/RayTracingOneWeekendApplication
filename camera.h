@@ -55,12 +55,13 @@ public:
 				}
 				pixel_color *= pixel_samples_scale;
 				// clamp rgb values [0,1} to byte range [0,255]
-				static const interval intensity(0.000, 0.999);
+				
 
 				auto r = linear_to_gamma(pixel_color.x());
 				auto g = linear_to_gamma(pixel_color.y());
 				auto b = linear_to_gamma(pixel_color.z());
 
+				static const interval intensity(0.000, 0.999);
 				int rByte = static_cast<int>(255.999 * intensity.clamp(r));
 				int gByte = static_cast<int>(255.999 * intensity.clamp(g));
 				int bByte = static_cast<int>(255.999 * intensity.clamp(b));
@@ -153,14 +154,16 @@ private:
 			ray scatttered;
 			color attenuation;
 			if (rec.mat->scatter(r, rec, attenuation, scatttered)) {
+				//return color(0.0, 1.0, 0.0);
 				return attenuation * ray_color(scatttered, depth - 1, world);
 			}
-			return color(0, 0, 0);
+			return color(0.0, 0.0, 0.0);
 		}
 
 		vec3 unit_direction = unit_vector(r.direction());
 		auto a = 0.5 * (unit_direction.y() + 1.0);
 		return (1.0 - a) * color(1.0, 1.0, 1.0) + a * color(0.5, 0.7, 1.0);
+		//return color(0.0, 1.0, 0.0);
 	}
 };
 
