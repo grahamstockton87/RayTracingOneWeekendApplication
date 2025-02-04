@@ -79,7 +79,18 @@ public:
         }
         return true;
     }
+    // returns index of longest axis of bounding box 
+    int longest_axis() const {
+        if (x.size() > y.size())
+            return x.size() > z.size() ? 0 : 2;
+        else
+            return y.size() > z.size() ? 1 : 2;
+
+    }
+    static const aabb empty, universe;
 
 };
 
+const aabb aabb::empty = aabb(interval::empty, interval::empty, interval::empty);
+const aabb aabb::universe = aabb(interval::universe, interval::universe, interval::universe);
 #endif

@@ -1,10 +1,12 @@
 #include "rtweekend.h"
 
+#include "bvh.h"
 #include "hittable_list.h"
 #include "hittable.h"
 #include "sphere.h"
 #include "triangle.h"
 #include "camera.h"
+
 
 #include <string>
 #include <future>
@@ -117,7 +119,9 @@ int main() {
         point3(4, 1, 8), point3(-4, 1, 8), point3(0, 7, 8),
         material3));
 
-    const char* image_name = "AABB.png";
+    world = hittable_list(make_shared<bvh_node>(world));
+
+    const char* image_name = "BVH.png";
 
     camera cam;
 
