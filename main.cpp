@@ -53,6 +53,15 @@ inline double clamp(double value, double min_val, double max_val) {
     return value;
 }
 
+// gives distance from point to point 
+inline double point_distance(const point3 point, const point3 lookfrom) {
+    return (std::sqrt(
+        pow(point.x() - lookfrom.x(), 2) +
+        pow(point.y() - lookfrom.y(), 2) +
+        pow(point.z() - lookfrom.z(), 2)
+    ));
+}
+
 
 int main() {
 
@@ -74,7 +83,8 @@ int main() {
                     // diffuse
                     auto albedo = color::random() * color::random();
                     sphere_material = make_shared<lambertian>(albedo);
-                    world.add(make_shared<sphere>(center, 0.2, sphere_material));
+                    auto center2 = center + vec3(0, random_double(0, .5), 0);
+                    world.add(make_shared<sphere>(center, center2, 0.2, sphere_material));
                 }
                 else if (choose_mat < 0.95) {
                     // metal
@@ -93,31 +103,35 @@ int main() {
     }
 
     auto material1 = make_shared<dielectric>(1.5);
-    world.add(make_shared<sphere>(point3(0, 1, 0), 1.0, material1));
+    world.add(make_shared<sphere>(point3(2, 1, 5), 1.0, material1));
 
     auto material2 = make_shared<lambertian>(color(0.4, 0.2, 0.1));
-    world.add(make_shared<sphere>(point3(-4, 1, 0), 1.0, material2));
+    world.add(make_shared<sphere>(point3(-2, 1, 5), 1.0, material2));
 
     auto material3 = make_shared<metal>(color(0.7, 0.6, 0.5), 0.0);
-    world.add(make_shared<sphere>(point3(4, 1, 0), 1.0, material3));
+    world.add(make_shared<sphere>(point3(0, 1, 5), 1.0, material3));
 
-    //world.add(make_shared<triangle>(point3(-1.0, 1.0, -2.0), point3(1, 1.0, -2.0), point3(0.0, 1.0, 2.0), material_ground));
+    auto material4 = make_shared<metal>(color(1.0, 1.0, 1.0), 0.0);
+    world.add(make_shared<triangle>(
+        point3(4, 0, 8), point3(-4, 0, 8), point3(0, 6, 8), 
+        point3(4, 1, 8), point3(-4, 1, 8), point3(0, 7, 8),
+        material3));
 
-    const char* image_name = "final.png";
+    const char* image_name = "AABB.png";
 
     camera cam;
 
     cam.image_name = image_name;
-    cam.samples_per_pixel = 500;
+    cam.samples_per_pixel = 50;
     cam.max_depth = 50;
 
     cam.vfov = 20;
-    cam.lookfrom = point3(13, 2, 3);
-    cam.lookat = point3(0, 0, 0);
+    cam.lookfrom = point3(1, 4, -10);
+    cam.lookat = point3(0, 1, 5);
     cam.vup = vec3(0, 1, 0);
 
-    cam.defocus_angle = 0.6;
-    cam.focus_dist = 10.0;
+    cam.defocus_angle = 0.1;
+    cam.focus_dist = point_distance(cam.lookat, cam.lookfrom);
 
    // cam.setName(image_name);
 

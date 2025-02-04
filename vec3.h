@@ -130,4 +130,18 @@ inline vec3 random_in_unit_disk() {
 		}
 	}
 }
+inline vec3 min_point(vec3 p0, vec3 p1, vec3 p2) {
+	return vec3(
+		fmin(p0.x(), fmin(p1.x(), p2.x())),
+		fmin(p0.y(), fmin(p1.y(), p2.y())),
+		fmin(p0.z(), fmin(p1.z(), p2.z()))
+	);
+}
+inline vec3 max_point(vec3 p0, vec3 p1, vec3 p2) {
+	return vec3(
+		fmax(p0.x(), fmax(p1.x(), p2.x())),
+		fmax(p0.y(), fmax(p1.y(), p2.y())),
+		fmax(p0.z(), fmax(p1.z(), p2.z()))
+	);
+}
 #endif // !VEC3_H
