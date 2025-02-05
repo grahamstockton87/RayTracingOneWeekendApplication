@@ -6,6 +6,7 @@
 #include "sphere.h"
 #include "triangle.h"
 #include "camera.h"
+#include "texture.h"
 
 
 #include <string>
@@ -68,10 +69,10 @@ inline double point_distance(const point3 point, const point3 lookfrom) {
 int main() {
 
     // World
-
     hittable_list world;
     auto ground_material = make_shared<lambertian>(color(0.5, 0.5, 0.5));
-    world.add(make_shared<sphere>(point3(0, -1000, 0), 1000, ground_material));
+    auto checker = make_shared<checker_texture>(0.32, color(0, 0, 0), color(.9, .9, .9));
+    world.add(make_shared<sphere>(point3(0, -1000, 0), 1000, make_shared<lambertian>(checker)));
 
     for (int a = -2; a < 3; a++) {
         for (int b = -2; b < 3; b++) {
@@ -114,19 +115,24 @@ int main() {
     world.add(make_shared<sphere>(point3(0, 1, 5), 1.0, material3));
 
     auto material4 = make_shared<metal>(color(1.0, 1.0, 1.0), 0.0);
+
+
+    auto checkerT = make_shared<checker_texture_triangle>(5, color(0, 0, 0), color(.9, .9, .9));
     world.add(make_shared<triangle>(
         point3(4, 0, 8), point3(-4, 0, 8), point3(0, 6, 8), 
-        point3(4, 1, 8), point3(-4, 1, 8), point3(0, 7, 8),
-        material3));
+        point3(4, 0, 8), point3(-4, 0, 8), point3(0, 6, 8),
+        (material3)));
 
     world = hittable_list(make_shared<bvh_node>(world));
 
-    const char* image_name = "BVH.png";
+    const char* image_name = "Checker.png";
+
+//  CAMERA SETTINGS ---------------------------------------------------------------------------
 
     camera cam;
 
     cam.image_name = image_name;
-    cam.samples_per_pixel = 50;
+    cam.samples_per_pixel = 100;
     cam.max_depth = 50;
 
     cam.vfov = 20;
@@ -137,7 +143,7 @@ int main() {
     cam.defocus_angle = 0.1;
     cam.focus_dist = point_distance(cam.lookat, cam.lookfrom);
 
-   // cam.setName(image_name);
+// --------------------------------------------------------------------------------------------
 
     // Image
 

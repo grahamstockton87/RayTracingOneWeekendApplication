@@ -14,6 +14,9 @@ public:
 	shared_ptr<material> mat;
 	double t;
 	bool front_face;
+	//texture
+	double u;
+	double v;
 
 	// Sets normal on face to be outside or inside face with ray dir. Outward_normal (unit length)
 	void set_face_normal(const ray& r, const vec3& outward_normal) {

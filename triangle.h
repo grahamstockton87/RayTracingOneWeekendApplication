@@ -16,6 +16,7 @@ public:
     {
         // Compute AABB for a stationary triangle
         bbox = compute_aabb(v0_start, v1_start, v2_start);
+        std::cout << "default constructor";
     }
 
     // Moving Triangle Constructor
@@ -34,44 +35,107 @@ public:
     }
 
     bool hit(const ray& r, interval ray_t, hit_record& rec) const override {
-        // Interpolate the triangle position at ray time
-        vec3 v0, v1, v2;
-        get_triangle_at_time(r.time(), v0, v1, v2);
+        //// Interpolate the triangle position at ray time
+        //vec3 v0, v1, v2;
+        //get_triangle_at_time(r.time(), v0, v1, v2);
 
-        // Triangle edges
-        vec3 v0v1 = v1 - v0;
-        vec3 v0v2 = v2 - v0;
+        //// Triangle edges
+        //vec3 v0v1 = v1 - v0;
+        //vec3 v0v2 = v2 - v0;
 
-        // Determinant for Möller-Trumbore intersection test
-        vec3 pvec = cross(r.direction(), v0v2);
-        float det = dot(v0v1, pvec);
+        //// Determinant for Möller-Trumbore intersection test
+        //vec3 pvec = cross(r.direction(), v0v2);
+        //float det = dot(v0v1, pvec);
 
-        // Ray parallel to triangle
-        if (fabs(det) < kEpsilon) return false;
+        //// Ray parallel to triangle
+        //if (fabs(det) < kEpsilon) return false;
 
-        float invDet = 1.0f / det;
-        vec3 tvec = r.origin() - v0;
+        //float invDet = 1.0f / det;
+        //vec3 tvec = r.origin() - v0;
 
-        // Compute barycentric coordinate u
-        auto u = dot(tvec, pvec) * invDet;
-        if (u < 0.0f || u > 1.0f) return false;
+        //// Compute barycentric coordinate u
+        //auto u = dot(tvec, pvec) * invDet;
+        //if (u < 0.0f || u > 1.0f) return false;
 
-        // Compute barycentric coordinate v
-        vec3 qvec = cross(tvec, v0v1);
-        auto v = dot(r.direction(), qvec) * invDet;
-        if (v < 0.0f || u + v > 1.0f) return false;
+        //// Compute barycentric coordinate v
+        //vec3 qvec = cross(tvec, v0v1);
+        //auto v = dot(r.direction(), qvec) * invDet;
+        //if (v < 0.0f || u + v > 1.0f) return false;
 
-        // Compute t (intersection distance)
-        auto t = dot(v0v2, qvec) * invDet;
-        if (t < ray_t.min || t > ray_t.max) return false;
+        //// Compute t (intersection distance)
+        //auto t = dot(v0v2, qvec) * invDet;
+        //if (t < ray_t.min || t > ray_t.max) return false;
 
-        // Record the hit
-        rec.mat = mat;
-        rec.p = r.at(t);
-        rec.normal = unit_vector(cross(v0v1, v0v2));
-        rec.t = t;
-        return true;
-    }
+        //// Record the hit
+        //rec.mat = mat;
+        //rec.p = r.at(t);
+        //rec.normal = unit_vector(cross(v0v1, v0v2));
+        //rec.t = t;
+        //rec.u = (1 - u - v) * uv0.x() + u * uv1.x() + v * uv2.x();
+        //rec.v = (1 - u - v) * uv0.y() + u * uv1.y() + v * uv2.y();
+        //return true;
+            // compute plane's normal
+            vec3 v0, v1, v2;
+            get_triangle_at_time(r.time(), v0, v1, v2);
+
+            vec3 v0v1 = v1 - v0;
+            vec3 v0v2 = v2 - v0;
+
+            // Compute normal using cross product
+            vec3 N = cross(v0v1, v0v2);
+
+            // Check if the ray is parallel to the triangle
+            float NdotRayDirection = dot(N, r.direction());
+            if (fabs(NdotRayDirection) < kEpsilon) return false;
+
+            // Compute intersection distance t
+            float t = (dot(N, v0) - dot(N, r.origin())) / NdotRayDirection;
+
+            // If t is outside the valid range, return false
+            if (t < ray_t.min || t > ray_t.max) return false;
+
+            // Compute intersection point
+            vec3 P = r.at(t);
+
+            // Compute the total area of the triangle
+            float area = N.length() / 2;
+
+            // Compute barycentric coordinates
+            vec3 C;
+
+            // Compute u (for triangle BCP)
+            vec3 v1p = P - v1;
+            vec3 v1v2 = v2 - v1;
+            C = cross(v1v2, v1p);
+            float u = (C.length() / 2) / area;
+            if (dot(N, C) < 0) return false;
+
+            // Compute v (for triangle CAP)
+            vec3 v2p = P - v2;
+            vec3 v2v0 = v0 - v2;
+            C = cross(v2v0, v2p);
+            float v = (C.length() / 2) / area;
+            if (dot(N, C) < 0) return false;
+
+            // Compute w (for triangle ABP)
+            vec3 v0p = P - v0;
+            C = cross(v0v1, v0p);
+            if (dot(N, C) < 0) return false;
+
+            // Compute real UV coordinates using barycentric interpolation
+            float w = 1.0f - u - v;
+            rec.u = (1 - u - v) * uv0.x() + u * uv1.x() + v * uv2.x();
+            rec.v = (1 - u - v) * uv0.y() + u * uv1.y() + v * uv2.y();
+
+            // The point is inside the triangle
+            rec.t = t;
+            rec.p = P;
+            rec.normal = unit_vector(N);
+            rec.mat = mat;
+
+            return true;
+        }
+
 
     aabb bounding_box() const override { return bbox; }
 
@@ -103,5 +167,10 @@ private:
 
         return aabb(min_point, max_point);
     }
-
+private:
+    vec3 uv0 = vec3(0, 0, 0);
+    vec3 uv1 = vec3(1, 0, 0);
+    vec3 uv2 = vec3(0, 1, 0);
 };
+
+// https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle/barycentric-coordinates.html
