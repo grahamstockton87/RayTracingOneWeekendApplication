@@ -165,8 +165,11 @@ private:
             fmax(p0.z(), fmax(p1.z(), p2.z()))
         );
 
-        return aabb(min_point, max_point);
+        // Add a small epsilon to avoid BVH skipping small triangles
+        vec3 padding(0.0001, 0.0001, 0.0001);
+        return aabb(min_point - padding, max_point + padding);
     }
+
 private:
     vec3 uv0 = vec3(0, 0, 0);
     vec3 uv1 = vec3(1, 0, 0);

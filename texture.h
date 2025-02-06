@@ -56,19 +56,20 @@ private:
 class checker_texture_triangle : public texture {
 public:
     checker_texture_triangle(double scale, shared_ptr<texture> even, shared_ptr<texture> odd)
-        : inv_scale(1.0 / scale), even(even), odd(odd) {}
+        : inv_scale(1.0 / std::max(0.01, scale)), even(even), odd(odd) {}
 
     checker_texture_triangle(double scale, const color& c1, const color& c2)
         : checker_texture_triangle(scale, make_shared<solid_color>(c1), make_shared<solid_color>(c2)) {}
 
     color value(double u, double v, const point3& p) const override {
-        // Use UV coordinates instead of world coordinates
-        auto uInteger = int(std::floor(inv_scale * u));
-        auto vInteger = int(std::floor(inv_scale * v));
+        // Flip v for proper UV alignment
+        v = 1.0 - v;
 
-        // Checker pattern based on UV grid
+        // Scale UV coordinates properly
+        auto uInteger = int(std::round(inv_scale * u * image_width));
+        auto vInteger = int(std::round(inv_scale * v * image_height));
+
         bool isEven = (uInteger + vInteger) % 2 == 0;
-
         return isEven ? even->value(u, v, p) : odd->value(u, v, p);
     }
 
@@ -76,5 +77,8 @@ private:
     double inv_scale;
     shared_ptr<texture> even;
     shared_ptr<texture> odd;
+    const int image_width = 10;  // Adjust based on actual texture size
+    const int image_height = 10;
 };
+
 #endif

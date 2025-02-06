@@ -16,9 +16,6 @@
 
 #include "windows.h"
 
-#define STBI_MSC_SECURE_CRT
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
 
 #define STBI_MSC_SECURE_CRT
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -74,36 +71,36 @@ int main() {
     auto checker = make_shared<checker_texture>(0.32, color(0, 0, 0), color(.9, .9, .9));
     world.add(make_shared<sphere>(point3(0, -1000, 0), 1000, make_shared<lambertian>(checker)));
 
-    for (int a = -2; a < 3; a++) {
-        for (int b = -2; b < 3; b++) {
-            auto choose_mat = random_double();
-            point3 center(a + 0.9 * random_double(), 0.2, b + 0.9 * random_double());
+    //for (int a = -2; a < 3; a++) {
+    //    for (int b = -2; b < 3; b++) {
+    //        auto choose_mat = random_double();
+    //        point3 center(a + 0.9 * random_double(), 0.2, b + 0.9 * random_double());
 
-            if ((center - point3(4, 0.2, 0)).length() > 0.9) {
-                shared_ptr<material> sphere_material;
+    //        if ((center - point3(4, 0.2, 0)).length() > 0.9) {
+    //            shared_ptr<material> sphere_material;
 
-                if (choose_mat < 0.8) {
-                    // diffuse
-                    auto albedo = color::random() * color::random();
-                    sphere_material = make_shared<lambertian>(albedo);
-                    auto center2 = center + vec3(0, random_double(0, .5), 0);
-                    world.add(make_shared<sphere>(center, center2, 0.2, sphere_material));
-                }
-                else if (choose_mat < 0.95) {
-                    // metal
-                    auto albedo = color::random(0.5, 1);
-                    auto fuzz = random_double(0, 0.5);
-                    sphere_material = make_shared<metal>(albedo, fuzz);
-                    world.add(make_shared<sphere>(center, 0.2, sphere_material));
-                }
-                else {
-                    // glass
-                    sphere_material = make_shared<dielectric>(1.5);
-                    world.add(make_shared<sphere>(center, 0.2, sphere_material));
-                }
-            }
-        }
-    }
+    //            if (choose_mat < 0.8) {
+    //                // diffuse
+    //                auto albedo = color::random() * color::random();
+    //                sphere_material = make_shared<lambertian>(albedo);
+    //                auto center2 = center + vec3(0, random_double(0, .5), 0);
+    //                world.add(make_shared<sphere>(center, center2, 0.2, sphere_material));
+    //            }
+    //            else if (choose_mat < 0.95) {
+    //                // metal
+    //                auto albedo = color::random(0.5, 1);
+    //                auto fuzz = random_double(0, 0.5);
+    //                sphere_material = make_shared<metal>(albedo, fuzz);
+    //                world.add(make_shared<sphere>(center, 0.2, sphere_material));
+    //            }
+    //            else {
+    //                // glass
+    //                sphere_material = make_shared<dielectric>(1.5);
+    //                world.add(make_shared<sphere>(center, 0.2, sphere_material));
+    //            }
+    //        }
+    //    }
+    //}
 
     auto material1 = make_shared<dielectric>(1.5);
     world.add(make_shared<sphere>(point3(2, 1, 5), 1.0, material1));
@@ -112,27 +109,31 @@ int main() {
     world.add(make_shared<sphere>(point3(-2, 1, 5), 1.0, material2));
 
     auto material3 = make_shared<metal>(color(0.7, 0.6, 0.5), 0.0);
-    world.add(make_shared<sphere>(point3(0, 1, 5), 1.0, material3));
+    //world.add(make_shared<sphere>(point3(0, 1, 5), 1.0, material3));
 
     auto material4 = make_shared<metal>(color(1.0, 1.0, 1.0), 0.0);
 
-
-    auto checkerT = make_shared<checker_texture_triangle>(5, color(0, 0, 0), color(.9, .9, .9));
+    auto checkerT = make_shared<checker_texture_triangle>(0.5, color(0, 0, 0), color(.9, .9, .9));
     world.add(make_shared<triangle>(
         point3(4, 0, 8), point3(-4, 0, 8), point3(0, 6, 8), 
         point3(4, 0, 8), point3(-4, 0, 8), point3(0, 6, 8),
-        (material3)));
+       (make_shared<lambertian>(checkerT))));
+
+    auto earth_texture = make_shared<image_texture>("C:/Users/graha/Documents/Visual Studio Projects 2024/Coding Projects/RayTracingOneWeekendApplication/RayTracingOneWeekendApplication/earthmap.jpg");
+    auto earth_surface = make_shared<lambertian>(earth_texture);
+    auto globe = make_shared<sphere>(point3(0, 1, 5), 1.0, earth_surface);
+    world.add(globe);
 
     world = hittable_list(make_shared<bvh_node>(world));
 
-    const char* image_name = "Checker.png";
+    const char* image_name = "imagetexture.png";
 
 //  CAMERA SETTINGS ---------------------------------------------------------------------------
 
     camera cam;
 
     cam.image_name = image_name;
-    cam.samples_per_pixel = 100;
+    cam.samples_per_pixel = 10;
     cam.max_depth = 50;
 
     cam.vfov = 20;
