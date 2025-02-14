@@ -68,7 +68,7 @@ int main() {
 
 
 
-    const char* image_name = "noise.png";
+    const char* image_name = "PerlinTrilinearTextureSmoothing.png";
 
 
 
@@ -114,7 +114,7 @@ int main() {
     world.add(make_shared<sphere>(point3(2, 1, 5), 1.0, material1));
 
     auto material2 = make_shared<lambertian>(color(0.4, 0.2, 0.1));
-    auto pertext = make_shared<noise_texture>();
+    auto pertext = make_shared<noise_texture>(10);
     world.add(make_shared<sphere>(point3(-2, 1, 5), 1.0, make_shared<lambertian>(pertext)));
 
     auto material3 = make_shared<metal>(color(0.7, 0.6, 0.5), 0.0);
