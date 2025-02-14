@@ -54,6 +54,7 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 12.8.props" />
   </ImportGroup>
   <ImportGroup Label="Shared">
   </ImportGroup>
@@ -133,6 +134,7 @@
     <ClInclude Include="aabb.h" />
     <ClInclude Include="bvh.h" />
     <ClInclude Include="camera.h" />
+    <ClInclude Include="cameraGPU.cuh" />
     <ClInclude Include="hittable.h" />
     <ClInclude Include="hittable_list.h" />
     <ClInclude Include="interval.h">
@@ -146,6 +148,7 @@
       </ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="material.h" />
+    <ClInclude Include="perlin.h" />
     <ClInclude Include="ray.h" />
     <ClInclude Include="rtweekend.h" />
     <ClInclude Include="rtw_stb_image.h" />
@@ -158,5 +161,6 @@
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 12.8.targets" />
   </ImportGroup>
 </Project>

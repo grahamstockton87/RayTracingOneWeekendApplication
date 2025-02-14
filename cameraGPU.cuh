@@ -14,6 +14,8 @@
 
 #include "windows.h"
 #include <iostream>
+#include <cuda_runtime.h>
+#include <device_launch_parameters.h>
 
 #define CHANNEL_NUM 3
 
@@ -46,64 +48,37 @@ public:
 	double defocus_angle = 0;  // Variation angle of rays through each pixel
 	double focus_dist = 10;    // Distance from camera lookfrom point to plane of perfect focus
 
-	void render(const hittable& world) {
+	__device__ void render_kernel(hittable& world){
 		initialize();
 
 		std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 
-		const int num_threads = std::thread::hardware_concurrency(); // Number of threads to use
-		std::vector<std::future<void>> futures; // Store futures for async tasks
-		const int rows_per_thread = image_height / num_threads;
+		int i = threadIdx.x + blockIdx.x * blockDim.x;
+		int j = threadIdx.y + blockIdx.y * blockDim.y;
 
-		std::atomic<int> rows_completed = 0; // Atomic counter for progress tracking
+		if (i >= image_width || j >= image_height) return;
 
-		auto render_rows = [&](int start_row, int end_row) {
-			for (int j = start_row; j < end_row; ++j) {
-				for (int i = 0; i < image_width; ++i) {
-					color pixel_color(0, 0, 0);
-
-					for (int sample = 0; sample < samples_per_pixel; ++sample) {
-						ray r = get_ray(i, j);
-						pixel_color += ray_color(r, max_depth, world);
-					}
-					pixel_color *= pixel_samples_scale;
-
-					// Clamp and gamma-correct pixel colors
-					auto r = linear_to_gamma(pixel_color.x());
-					auto g = linear_to_gamma(pixel_color.y());
-					auto b = linear_to_gamma(pixel_color.z());
-
-					static const interval intensity(0.000, 0.999);
-					int rByte = static_cast<int>(255.999 * intensity.clamp(r));
-					int gByte = static_cast<int>(255.999 * intensity.clamp(g));
-					int bByte = static_cast<int>(255.999 * intensity.clamp(b));
-
-					int pixel_index = (j * image_width + i) * CHANNEL_NUM;
-					pixels[pixel_index] = rByte;
-					pixels[pixel_index + 1] = gByte;
-					pixels[pixel_index + 2] = bByte;
-				}
-				rows_completed++;
-			}
-			};
-
-		// Divide work among threads
-		for (int t = 0; t < num_threads; ++t) {
-			int start_row = t * rows_per_thread;
-			int end_row = (t == num_threads - 1) ? image_height : start_row + rows_per_thread;
-			futures.push_back(std::async(std::launch::async, render_rows, start_row, end_row));
+		color pixel_color(0, 0, 0);
+		for (int sample = 0; sample < samples_per_pixel; ++sample) {
+			ray r = get_ray(i, j);
+			pixel_color += ray_color(r, max_depth, world);
 		}
-		// Progress monitoring loop
-		while (rows_completed < image_height) {
-			float percent = 100.0f * rows_completed / image_height;
-			std::cerr << "\rPercent Rendered: " << static_cast<int>(percent) << "% " << std::flush;
-			std::this_thread::sleep_for(std::chrono::milliseconds(100)); // Update every 100ms
-		}
-		// Wait for all threads to complete
-		for (auto& f : futures) {
-			f.get();
-		}
+		pixel_color *= (1.0 / samples_per_pixel);
 
+		// Clamp and gamma-correct pixel colors
+		auto r = linear_to_gamma(pixel_color.x());
+		auto g = linear_to_gamma(pixel_color.y());
+		auto b = linear_to_gamma(pixel_color.z());
+
+		static const interval intensity(0.000, 0.999);
+		int rByte = static_cast<int>(255.999 * intensity.clamp(r));
+		int gByte = static_cast<int>(255.999 * intensity.clamp(g));
+		int bByte = static_cast<int>(255.999 * intensity.clamp(b));
+
+		int pixel_index = (j * image_width + i) * CHANNEL_NUM;
+		pixels[pixel_index] = rByte;
+		pixels[pixel_index + 1] = gByte;
+		pixels[pixel_index + 2] = bByte;
 
 		std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 
@@ -217,6 +192,32 @@ private:
 		auto a = 0.5 * (unit_direction.y() + 1.0);
 		return (1.0 - a) * color(1.0, 1.0, 1.0) + a * color(0.5, 0.7, 1.0);
 		//return color(0.0, 1.0, 0.0);
+	}
+
+	void render(const hittable& world) {
+		initialize();
+
+		uint8_t* d_pixels;
+		size_t pixel_count = image_width * image_height * 3;
+		cudaMalloc(&d_pixels, pixel_count);
+
+		hittable* d_world;
+		cudaMalloc(&d_world, sizeof(hittable));
+		cudaMemcpy(d_world, &world, sizeof(hittable), cudaMemcpyHostToDevice);
+
+		dim3 blocks((image_width + 15) / 16, (image_height + 15) / 16);
+		dim3 threads(16, 16);
+
+		render_kernel<<<blocks, threads>>> (d_world);
+
+		cudaDeviceSynchronize();
+
+		cudaMemcpy(pixels, d_pixels, pixel_count, cudaMemcpyDeviceToHost);
+
+		cudaFree(d_pixels);
+		cudaFree(d_world);
+
+		stbi_write_png("output.png", image_width, image_height, 3, pixels, image_width * 3);
 	}
 };
 

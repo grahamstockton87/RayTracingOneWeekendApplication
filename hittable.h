@@ -12,11 +12,11 @@ public:
 	point3 p;
 	vec3 normal;
 	shared_ptr<material> mat;
-	double t;
-	bool front_face;
+	double t = 0;
+	bool front_face = false;
 	//texture
-	double u;
-	double v;
+	double u = 0;
+	double v = 0;
 
 	// Sets normal on face to be outside or inside face with ray dir. Outward_normal (unit length)
 	void set_face_normal(const ray& r, const vec3& outward_normal) {

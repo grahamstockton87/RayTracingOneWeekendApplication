@@ -6,6 +6,7 @@
 #include "sphere.h"
 #include "triangle.h"
 #include "camera.h"
+//#include "cameraGPU.cuh"
 #include "texture.h"
 
 
@@ -65,6 +66,13 @@ inline double point_distance(const point3 point, const point3 lookfrom) {
 
 int main() {
 
+
+
+    const char* image_name = "noise.png";
+
+
+
+
     // World
     hittable_list world;
     auto ground_material = make_shared<lambertian>(color(0.5, 0.5, 0.5));
@@ -106,7 +114,8 @@ int main() {
     world.add(make_shared<sphere>(point3(2, 1, 5), 1.0, material1));
 
     auto material2 = make_shared<lambertian>(color(0.4, 0.2, 0.1));
-    world.add(make_shared<sphere>(point3(-2, 1, 5), 1.0, material2));
+    auto pertext = make_shared<noise_texture>();
+    world.add(make_shared<sphere>(point3(-2, 1, 5), 1.0, make_shared<lambertian>(pertext)));
 
     auto material3 = make_shared<metal>(color(0.7, 0.6, 0.5), 0.0);
     //world.add(make_shared<sphere>(point3(0, 1, 5), 1.0, material3));
@@ -125,8 +134,6 @@ int main() {
     world.add(globe);
 
     world = hittable_list(make_shared<bvh_node>(world));
-
-    const char* image_name = "imagetexture.png";
 
 //  CAMERA SETTINGS ---------------------------------------------------------------------------
 
