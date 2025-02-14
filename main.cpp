@@ -68,7 +68,7 @@ int main() {
 
 
 
-    const char* image_name = "PerlinTrilinearPerlinNoiseTurb.png";
+    const char* image_name = "PerlinTrilinearPerlinMarble.png";
 
 
 
