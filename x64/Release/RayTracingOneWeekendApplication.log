@@ -1,18 +1,13 @@
 ﻿  main.cpp
 C:\Users\graha\Documents\Visual Studio Projects 2024\Coding Projects\RayTracingOneWeekendApplication\RayTracingOneWeekendApplication\vec3.h(101,14): warning C4804: '<=': unsafe use of type 'bool' in operation
-C:\Users\graha\Documents\Visual Studio Projects 2024\Coding Projects\RayTracingOneWeekendApplication\RayTracingOneWeekendApplication\triangle.h(88,36): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\graha\Documents\Visual Studio Projects 2024\Coding Projects\RayTracingOneWeekendApplication\RayTracingOneWeekendApplication\triangle.h(92,21): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\graha\Documents\Visual Studio Projects 2024\Coding Projects\RayTracingOneWeekendApplication\RayTracingOneWeekendApplication\triangle.h(101,24): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\graha\Documents\Visual Studio Projects 2024\Coding Projects\RayTracingOneWeekendApplication\RayTracingOneWeekendApplication\triangle.h(110,21): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\graha\Documents\Visual Studio Projects 2024\Coding Projects\RayTracingOneWeekendApplication\RayTracingOneWeekendApplication\triangle.h(117,21): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
 C:\Users\graha\Documents\Visual Studio Projects 2024\Coding Projects\RayTracingOneWeekendApplication\RayTracingOneWeekendApplication\camera.h(110,21): warning C4244: 'initializing': conversion from '_Rep' to 'double', possible loss of data
           with
           [
               _Rep=__int64
           ]
   Generating code
-  2 of 1791 functions ( 0.1%) were compiled, the rest were copied from previous compilation.
-    0 functions were new in current compilation
-    9 functions had inline decision re-evaluated but remain unchanged
+  11 of 1817 functions ( 0.6%) were compiled, the rest were copied from previous compilation.
+    5 functions were new in current compilation
+    77 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
   RayTracingOneWeekendApplication.vcxproj -> C:\Users\graha\Documents\Visual Studio Projects 2024\Coding Projects\RayTracingOneWeekendApplication\x64\Release\RayTracingOneWeekendApplication.exe

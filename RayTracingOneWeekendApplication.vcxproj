@@ -147,8 +147,10 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
       </ExcludedFromBuild>
     </ClInclude>
+    <ClInclude Include="main.h" />
     <ClInclude Include="material.h" />
     <ClInclude Include="perlin.h" />
+    <ClInclude Include="quad.h" />
     <ClInclude Include="ray.h" />
     <ClInclude Include="rtweekend.h" />
     <ClInclude Include="rtw_stb_image.h" />

@@ -6,6 +6,7 @@
 #include "sphere.h"
 #include "triangle.h"
 #include "camera.h"
+#include "quad.h"
 //#include "cameraGPU.cuh"
 #include "texture.h"
 
@@ -21,6 +22,7 @@
 #define STBI_MSC_SECURE_CRT
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
+#include "main.h"
 
 // Function to convert const char* to std::wstring
 std::wstring ConvertToWideString(const std::string& narrowString) {
@@ -68,16 +70,80 @@ int main() {
 
 
 
-    const char* image_name = "PerlinTrilinearPerlinMarble.png";
+    const char* image_name = "tetstdtsads.png";
 
-
-
+    int scene = 0;
 
     // World
     hittable_list world;
-    auto ground_material = make_shared<lambertian>(color(0.5, 0.5, 0.5));
-    auto checker = make_shared<checker_texture>(0.32, color(0, 0, 0), color(.9, .9, .9));
-    world.add(make_shared<sphere>(point3(0, -1000, 0), 1000, make_shared<lambertian>(checker)));
+
+
+    switch (scene) {
+    case 0: {
+        auto ground_material = make_shared<lambertian>(color(0.5, 0.5, 0.5));
+        auto checker = make_shared<checker_texture>(0.32, color(0, 0, 0), color(.9, .9, .9));
+        world.add(make_shared<sphere>(point3(0, -1000, 0), 1000, make_shared<lambertian>(checker)));
+
+
+        auto material1 = make_shared<dielectric>(1.5);
+        world.add(make_shared<sphere>(point3(2, 1, 5), 1.0, material1));
+
+        auto material2 = make_shared<lambertian>(color(0.4, 0.2, 0.1));
+        auto pertext = make_shared<noise_texture>(10);
+        world.add(make_shared<sphere>(point3(-2, 1, 5), 1.0, make_shared<lambertian>(pertext)));
+
+        auto material3 = make_shared<metal>(color(0.7, 0.6, 0.5), 0.0);
+        //world.add(make_shared<sphere>(point3(0, 1, 5), 1.0, material3));
+
+        auto material4 = make_shared<metal>(color(1.0, 1.0, 1.0), 0.0);
+
+        auto checkerT = make_shared<checker_texture_triangle>(0.5, color(0, 0, 0), color(.9, .9, .9));
+        world.add(make_shared<triangle>(
+            point3(4, 0, 8), point3(-4, 0, 8), point3(0, 6, 8),
+            (make_shared<lambertian>(checkerT))));
+
+        auto earth_texture = make_shared<image_texture>("C:/Users/graha/Documents/Visual Studio Projects 2024/Coding Projects/RayTracingOneWeekendApplication/RayTracingOneWeekendApplication/earthmap.jpg");
+        auto earth_surface = make_shared<lambertian>(earth_texture);
+        auto globe = make_shared<sphere>(point3(0, 1, 5), 1.0, earth_surface);
+        world.add(globe);
+
+        //cam.image_name = image_name;
+        //cam.samples_per_pixel = 10;
+        //cam.max_depth = 50;
+
+        //cam.vfov = 20;
+        //cam.lookfrom = point3(1, 4, -10);
+        //cam.lookat = point3(0, 1, 5);
+        //cam.vup = vec3(0, 1, 0);
+
+        //cam.defocus_angle = 0.1;
+        //cam.focus_dist = point_distance(cam.lookat, cam.lookfrom);
+        //cam.render(world);
+
+        break;
+    }
+    case 1: {
+        // Materials
+        auto left_red = make_shared<lambertian>(color(1.0, 0.2, 0.2));
+        auto back_green = make_shared<lambertian>(color(0.2, 1.0, 0.2));
+        auto right_blue = make_shared<lambertian>(color(0.2, 0.2, 1.0));
+        auto upper_orange = make_shared<lambertian>(color(1.0, 0.5, 0.0));
+        auto lower_teal = make_shared<lambertian>(color(0.2, 0.8, 0.8));
+
+        // Quads
+        world.add(make_shared<quad>(point3(-3, -2, 5), vec3(0, 0, -4), vec3(0, 4, 0), left_red));
+        world.add(make_shared<quad>(point3(-2, -2, 0), vec3(4, 0, 0), vec3(0, 4, 0), back_green));
+        world.add(make_shared<quad>(point3(3, -2, 1), vec3(0, 0, 4), vec3(0, 4, 0), right_blue));
+        world.add(make_shared<quad>(point3(-2, 3, 1), vec3(4, 0, 0), vec3(0, 0, 4), upper_orange));
+        world.add(make_shared<quad>(point3(-2, -3, 5), vec3(4, 0, 0), vec3(0, 0, -4), lower_teal));
+
+        break;
+    }
+    }
+
+
+
+
 
     //for (int a = -2; a < 3; a++) {
     //    for (int b = -2; b < 3; b++) {
@@ -110,46 +176,22 @@ int main() {
     //    }
     //}
 
-    auto material1 = make_shared<dielectric>(1.5);
-    world.add(make_shared<sphere>(point3(2, 1, 5), 1.0, material1));
-
-    auto material2 = make_shared<lambertian>(color(0.4, 0.2, 0.1));
-    auto pertext = make_shared<noise_texture>(10);
-    world.add(make_shared<sphere>(point3(-2, 1, 5), 1.0, make_shared<lambertian>(pertext)));
-
-    auto material3 = make_shared<metal>(color(0.7, 0.6, 0.5), 0.0);
-    //world.add(make_shared<sphere>(point3(0, 1, 5), 1.0, material3));
-
-    auto material4 = make_shared<metal>(color(1.0, 1.0, 1.0), 0.0);
-
-    auto checkerT = make_shared<checker_texture_triangle>(0.5, color(0, 0, 0), color(.9, .9, .9));
-    world.add(make_shared<triangle>(
-        point3(4, 0, 8), point3(-4, 0, 8), point3(0, 6, 8), 
-        point3(4, 0, 8), point3(-4, 0, 8), point3(0, 6, 8),
-       (make_shared<lambertian>(checkerT))));
-
-    auto earth_texture = make_shared<image_texture>("C:/Users/graha/Documents/Visual Studio Projects 2024/Coding Projects/RayTracingOneWeekendApplication/RayTracingOneWeekendApplication/earthmap.jpg");
-    auto earth_surface = make_shared<lambertian>(earth_texture);
-    auto globe = make_shared<sphere>(point3(0, 1, 5), 1.0, earth_surface);
-    world.add(globe);
 
     world = hittable_list(make_shared<bvh_node>(world));
 
 //  CAMERA SETTINGS ---------------------------------------------------------------------------
 
     camera cam;
-
     cam.image_name = image_name;
-    cam.samples_per_pixel = 10;
-    cam.max_depth = 50;
+    cam.samples_per_pixel = 100;
+    cam.max_depth = 5;
 
-    cam.vfov = 20;
-    cam.lookfrom = point3(1, 4, -10);
-    cam.lookat = point3(0, 1, 5);
+    cam.vfov = 80;
+    cam.lookfrom = point3(0, 0, 9);
+    cam.lookat = point3(0, 0, 0);
     cam.vup = vec3(0, 1, 0);
 
-    cam.defocus_angle = 0.1;
-    cam.focus_dist = point_distance(cam.lookat, cam.lookfrom);
+    cam.defocus_angle = 0;
 
 // --------------------------------------------------------------------------------------------
 
@@ -167,7 +209,6 @@ int main() {
         }
         
     }
-
 
     // Render
     cam.render(world);
