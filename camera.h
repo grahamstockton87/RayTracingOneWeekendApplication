@@ -37,6 +37,7 @@ public:
 	const char* image_name = "Default Image";
 	int samples_per_pixel = 10;
 	int max_depth = 10;
+	color background = vec3(0,0,0); // scene background color
 
 	double vfov = 90; // field of view
 	point3 lookfrom = point3(0, 0, 0); // point cam looking from
@@ -202,21 +203,19 @@ private:
 
 		hit_record rec;
 
-		if (world.hit(r, interval(0.001, infinity), rec)) {
-			//vec3 direction = random_on_hemisphere(rec.normal); 
-			ray scatttered;
-			color attenuation;
-			if (rec.mat->scatter(r, rec, attenuation, scatttered)) {
-				//return color(0.0, 1.0, 0.0);
-				return attenuation * ray_color(scatttered, depth - 1, world);
-			}
-			return color(0.0, 0.0, 0.0);
-		}
+		if (!world.hit(r, interval(0.001, infinity), rec)) 
+			return background;
+ 
+		ray scattered;
+		color attenuation;
+		color color_from_emission = rec.mat->emitted(rec.u, rec.v, rec.p);
 
-		vec3 unit_direction = unit_vector(r.direction());
-		auto a = 0.5 * (unit_direction.y() + 1.0);
-		return (1.0 - a) * color(1.0, 1.0, 1.0) + a * color(0.5, 0.7, 1.0);
-		//return color(0.0, 1.0, 0.0);
+		if (!rec.mat->scatter(r, rec, attenuation, scattered)) 
+			return color_from_emission;
+		
+		color color_from_scatter = attenuation * ray_color(scattered, depth - 1, world);
+
+		return color_from_emission + color_from_scatter;
 	}
 };
 

@@ -70,9 +70,9 @@ int main() {
 
 
 
-    const char* image_name = "tetstdtsads.png";
+    const char* image_name = "light.png";
 
-    int scene = 0;
+    int scene = 2;
 
     // World
     hittable_list world;
@@ -139,6 +139,14 @@ int main() {
 
         break;
     }
+    case 2: {
+        auto pertext = make_shared<noise_texture>(4);
+        world.add(make_shared<sphere>(point3(0, -1000, 0), 1000, make_shared<lambertian>(pertext)));
+        world.add(make_shared<sphere>(point3(0, 2, 0), 2, make_shared<lambertian>(pertext)));
+
+        auto difflight = make_shared<diffuse_light>(color(4, 4, 4));
+        world.add(make_shared<quad>(point3(3, 1, -2), vec3(2, 0, 0), vec3(0, 2, 0), difflight));
+    }
     }
 
 
@@ -183,12 +191,14 @@ int main() {
 
     camera cam;
     cam.image_name = image_name;
-    cam.samples_per_pixel = 100;
-    cam.max_depth = 5;
 
-    cam.vfov = 80;
-    cam.lookfrom = point3(0, 0, 9);
-    cam.lookat = point3(0, 0, 0);
+    cam.samples_per_pixel = 100;
+    cam.max_depth = 50;
+    cam.background = color(0, 0, 0);
+
+    cam.vfov = 20;
+    cam.lookfrom = point3(26, 3, 6);
+    cam.lookat = point3(0, 2, 0);
     cam.vup = vec3(0, 1, 0);
 
     cam.defocus_angle = 0;
