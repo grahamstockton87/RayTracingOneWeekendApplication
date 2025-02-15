@@ -150,6 +150,7 @@
     <ClInclude Include="main.h" />
     <ClInclude Include="material.h" />
     <ClInclude Include="perlin.h" />
+    <ClInclude Include="point_light.h" />
     <ClInclude Include="quad.h" />
     <ClInclude Include="ray.h" />
     <ClInclude Include="rtweekend.h" />

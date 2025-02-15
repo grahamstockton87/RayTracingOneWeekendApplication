@@ -7,6 +7,7 @@
 #include "triangle.h"
 #include "camera.h"
 #include "quad.h"
+#include "point_light.h"
 //#include "cameraGPU.cuh"
 #include "texture.h"
 
@@ -70,13 +71,15 @@ int main() {
 
 
 
-    const char* image_name = "light.png";
+    const char* image_name = "PointLight.png";
 
-    int scene = 2;
+    int scene = 4;
 
     // World
     hittable_list world;
-
+    camera cam;
+    // A container for all lights in the scene
+    std::vector<point_light> lights;
 
     switch (scene) {
     case 0: {
@@ -107,18 +110,18 @@ int main() {
         auto globe = make_shared<sphere>(point3(0, 1, 5), 1.0, earth_surface);
         world.add(globe);
 
-        //cam.image_name = image_name;
-        //cam.samples_per_pixel = 10;
-        //cam.max_depth = 50;
+        cam.image_name = image_name;
+        cam.samples_per_pixel = 10;
+        cam.max_depth = 50;
 
-        //cam.vfov = 20;
-        //cam.lookfrom = point3(1, 4, -10);
-        //cam.lookat = point3(0, 1, 5);
-        //cam.vup = vec3(0, 1, 0);
+        cam.vfov = 20;
+        cam.lookfrom = point3(1, 4, -10);
+        cam.lookat = point3(0, 1, 5);
+        cam.vup = vec3(0, 1, 0);
 
-        //cam.defocus_angle = 0.1;
-        //cam.focus_dist = point_distance(cam.lookat, cam.lookfrom);
-        //cam.render(world);
+        cam.defocus_angle = 0.1;
+        cam.focus_dist = point_distance(cam.lookat, cam.lookfrom);
+        //cam.render(world, lights);
 
         break;
     }
@@ -144,8 +147,69 @@ int main() {
         world.add(make_shared<sphere>(point3(0, -1000, 0), 1000, make_shared<lambertian>(pertext)));
         world.add(make_shared<sphere>(point3(0, 2, 0), 2, make_shared<lambertian>(pertext)));
 
-        auto difflight = make_shared<diffuse_light>(color(4, 4, 4));
+        auto difflight = make_shared<diffuse_light>(color(10, 10, 10));
+        world.add(make_shared<sphere>(point3(0, 7, 0), 2, difflight));
         world.add(make_shared<quad>(point3(3, 1, -2), vec3(2, 0, 0), vec3(0, 2, 0), difflight));
+
+        cam.samples_per_pixel = 1000;
+        cam.max_depth = 50;
+        cam.background = color(0, 0, 0);
+
+        cam.vfov = 20;
+        cam.lookfrom = point3(26, 3, 6);
+        cam.lookat = point3(0, 2, 0);
+        cam.vup = vec3(0, 1, 0);
+
+        cam.defocus_angle = 0;
+    }
+    case 3: {
+        auto red = make_shared<lambertian>(color(.65, .05, .05));
+        auto white = make_shared<lambertian>(color(.73, .73, .73));
+        auto green = make_shared<lambertian>(color(.12, .45, .15));
+        auto light = make_shared<diffuse_light>(color(15, 15, 15));
+
+        world.add(make_shared<quad>(point3(555, 0, 0), vec3(0, 555, 0), vec3(0, 0, 555), green));
+        world.add(make_shared<quad>(point3(0, 0, 0), vec3(0, 555, 0), vec3(0, 0, 555), red));
+        world.add(make_shared<quad>(point3(343, 554, 332), vec3(-130, 0, 0), vec3(0, 0, -105), light));
+        world.add(make_shared<quad>(point3(0, 0, 0), vec3(555, 0, 0), vec3(0, 0, 555), white));
+        world.add(make_shared<quad>(point3(555, 555, 555), vec3(-555, 0, 0), vec3(0, 0, -555), white));
+        world.add(make_shared<quad>(point3(0, 0, 555), vec3(555, 0, 0), vec3(0, 555, 0), white));
+
+        world.add(box(point3(130, 0, 65), point3(295, 165, 230), white));
+        world.add(box(point3(265, 0, 295), point3(430, 330, 460), white));
+
+
+        cam.samples_per_pixel = 200;
+        cam.max_depth = 5;
+        cam.background = color(0, 0, 0);
+
+        cam.vfov = 40;
+        cam.lookfrom = point3(278, 278, -800);
+        cam.lookat = point3(278, 278, 0);
+        cam.vup = vec3(0, 1, 0);
+
+        cam.defocus_angle = 0;
+    }
+    case 4:
+    {
+        auto red = make_shared<lambertian>(color(.65, .05, .05));
+
+        world.add(make_shared<sphere>(point3(0, 2, 4), 1.0, red));
+
+        point_light light(point3(0, 2, 2), color(10, 10, 10));
+        lights.push_back(light);
+
+        auto difflight = make_shared<diffuse_light>(color(10, 10, 10));
+        world.add(make_shared<sphere>(point3(0, 7, 0), 2, difflight));
+
+        cam.samples_per_pixel = 200;
+        cam.max_depth = 5;
+        cam.background = color(0, 0, 0);
+
+        cam.vfov = 40;
+        cam.lookfrom = point3(0, 0, 0);
+        cam.lookat = point3(0, 2, 4);
+        cam.vup = vec3(0, 1, 0);
     }
     }
 
@@ -189,19 +253,8 @@ int main() {
 
 //  CAMERA SETTINGS ---------------------------------------------------------------------------
 
-    camera cam;
     cam.image_name = image_name;
 
-    cam.samples_per_pixel = 100;
-    cam.max_depth = 50;
-    cam.background = color(0, 0, 0);
-
-    cam.vfov = 20;
-    cam.lookfrom = point3(26, 3, 6);
-    cam.lookat = point3(0, 2, 0);
-    cam.vup = vec3(0, 1, 0);
-
-    cam.defocus_angle = 0;
 
 // --------------------------------------------------------------------------------------------
 
@@ -221,7 +274,7 @@ int main() {
     }
 
     // Render
-    cam.render(world);
+    cam.render(world, lights);
 
 
     // Convert file name to wide string

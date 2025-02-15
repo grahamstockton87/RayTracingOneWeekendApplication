@@ -6,6 +6,7 @@
 #include "ray.h"
 #include "interval.h"
 #include "material.h"
+#include "point_light.h"
 
 #include <string>
 #include <future>
@@ -14,6 +15,8 @@
 
 #include "windows.h"
 #include <iostream>
+#include <algorithm>  // For std::max
+
 
 #define CHANNEL_NUM 3
 
@@ -37,7 +40,7 @@ public:
 	const char* image_name = "Default Image";
 	int samples_per_pixel = 10;
 	int max_depth = 10;
-	color background = vec3(0,0,0); // scene background color
+	color background = vec3(0, 0, 0); // scene background color
 
 	double vfov = 90; // field of view
 	point3 lookfrom = point3(0, 0, 0); // point cam looking from
@@ -47,7 +50,7 @@ public:
 	double defocus_angle = 0;  // Variation angle of rays through each pixel
 	double focus_dist = 10;    // Distance from camera lookfrom point to plane of perfect focus
 
-	void render(const hittable& world) {
+	void render(const hittable& world, std::vector<point_light>& lights) {
 		initialize();
 
 		std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
@@ -65,7 +68,7 @@ public:
 
 					for (int sample = 0; sample < samples_per_pixel; ++sample) {
 						ray r = get_ray(i, j);
-						pixel_color += ray_color(r, max_depth, world);
+						pixel_color += ray_color(r, max_depth, world, lights);
 					}
 					pixel_color *= pixel_samples_scale;
 
@@ -196,29 +199,61 @@ private:
 	}
 
 	// grabs color of ray if it intersects
-	color ray_color(const ray& r, int depth, const hittable& world) const {
-		// limit child rays 
+	color ray_color(const ray& r, int depth, const hittable& world, std::vector<point_light>& lights) {
+		// Limit child rays to prevent infinite recursion
 		if (depth <= 0)
 			return color(0, 0, 0);
 
 		hit_record rec;
 
-		if (!world.hit(r, interval(0.001, infinity), rec)) 
+		// If the ray doesn't hit anything, return the background color
+		if (!world.hit(r, interval(0.001, infinity), rec)) {
 			return background;
- 
-		ray scattered;
-		color attenuation;
+		}
+
+		// Calculate emission from the material at the intersection point
 		color color_from_emission = rec.mat->emitted(rec.u, rec.v, rec.p);
 
-		if (!rec.mat->scatter(r, rec, attenuation, scattered)) 
+		// If the material doesn't scatter, return the emitted color (if any)
+		ray scattered;
+		color attenuation;
+		if (!rec.mat->scatter(r, rec, attenuation, scattered)) {
 			return color_from_emission;
-		
-		color color_from_scatter = attenuation * ray_color(scattered, depth - 1, world);
+		}
 
-		return color_from_emission + color_from_scatter;
+		// Calculate lighting at the intersection point
+		color lighting = attenuation * get_lighting(rec.p, rec.normal, lights);
+		//std::cout << lighting << std::endl;
+
+		// Recursively call ray_color for scattered rays
+		color color_from_scatter = attenuation * ray_color(scattered, depth - 1, world, lights);
+
+		// Combine the emission, scattered color, and lighting
+		return color_from_emission + lighting + color_from_scatter;
 	}
+
+	color get_lighting(const point3& p, const vec3& normal, std::vector<point_light>& lights) {
+		color result(0, 0, 0);
+
+		for (const auto& light : lights) {
+			vec3 light_dir = light.get_position() - p;
+			double distance_squared = light_dir.length_squared();
+			light_dir = unit_vector(light_dir);
+
+			// Compute basic Lambertian reflection (dot product)
+			double diffuse = max(dot(normal, light_dir), 0.0);
+
+			// Attenuation based on distance
+			color intensity = light.get_intensity() / distance_squared;
+
+			// Add the diffuse light contribution, factoring in material color (attenuation)
+			result += intensity * diffuse;  // Using the material's color here
+		}
+
+		return result;
+	}
+
+
 };
-
-
 
 #endif // CAMERA_H
