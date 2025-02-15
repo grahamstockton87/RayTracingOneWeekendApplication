@@ -243,15 +243,30 @@ private:
 			// Compute basic Lambertian reflection (dot product)
 			double diffuse = max(dot(normal, light_dir), 0.0);
 
-			// Attenuation based on distance
-			color intensity = light.get_intensity() / distance_squared;
+			// Get light size and compute distance attenuation
+			double size_factor = light.get_size();  // Get the size (radius) of the light
 
-			// Add the diffuse light contribution, factoring in material color (attenuation)
-			result += intensity * diffuse;  // Using the material's color here
+			// To simulate the light's physical radius, we adjust the light's influence.
+			// Larger lights will have a more diffuse (softer) light distribution.
+			double radius_effect = size_factor * 0.1;  // Adjust this factor to control the softness of the light
+
+			// Check if the light is within a radius of the point (for soft shadows)
+			if (distance_squared <= size_factor * size_factor) {
+				// If the point is within the light's radius, the intensity is higher and softer
+				result += light.get_intensity() * diffuse;
+			}
+			else {
+				// Otherwise, calculate light intensity based on distance (attenuation) and radius
+				double attenuation = 1.0 / (distance_squared + radius_effect);
+				color intensity = light.get_intensity() * attenuation;
+				result += intensity * diffuse;
+			}
 		}
 
 		return result;
 	}
+
+
 
 
 };

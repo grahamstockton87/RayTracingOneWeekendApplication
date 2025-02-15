@@ -196,7 +196,7 @@ int main() {
 
         world.add(make_shared<sphere>(point3(0, 2, 4), 1.0, red));
 
-        point_light light(point3(0, 2, 2), color(10, 10, 10));
+        point_light light(point3(0, 2, 2), color(1, 1, 1), 0.1);
         lights.push_back(light);
 
         auto difflight = make_shared<diffuse_light>(color(10, 10, 10));

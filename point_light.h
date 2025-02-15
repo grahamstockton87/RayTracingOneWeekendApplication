@@ -8,7 +8,7 @@ using color = vec3;
 
 class point_light {
 public:
-    point_light(point3 position, color intensity, double size = 1.0)
+    point_light(point3 position, color intensity, double size)
         : position(position), intensity(intensity), size(size) {}
 
     point3 get_position() const { return position; }
