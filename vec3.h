@@ -35,6 +35,9 @@ public:
 	vec3& operator/=(double t) {
 		return *this *= 1 / t;
 	}
+	bool operator==(const vec3& v) const {
+		return (e[0] == v.e[0] && e[1] == v.e[1] && e[2] == v.e[2]);
+	}
 	double length() const {
 		return std::sqrt(length_squared());
 	}

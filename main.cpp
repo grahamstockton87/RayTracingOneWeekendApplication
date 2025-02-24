@@ -23,7 +23,6 @@
 #define STBI_MSC_SECURE_CRT
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
-#include "main.h"
 
 // Function to convert const char* to std::wstring
 std::wstring ConvertToWideString(const std::string& narrowString) {
@@ -71,9 +70,9 @@ int main() {
 
 
 
-    const char* image_name = "PointLight.png";
+    const char* image_name = "CornellBoxRotationTranslation.png";
 
-    int scene = 4;
+    int scene = 3;
 
     // World
     hittable_list world;
@@ -175,12 +174,19 @@ int main() {
         world.add(make_shared<quad>(point3(555, 555, 555), vec3(-555, 0, 0), vec3(0, 0, -555), white));
         world.add(make_shared<quad>(point3(0, 0, 555), vec3(555, 0, 0), vec3(0, 555, 0), white));
 
-        world.add(box(point3(130, 0, 65), point3(295, 165, 230), white));
-        world.add(box(point3(265, 0, 295), point3(430, 330, 460), white));
+        shared_ptr<hittable> box1 = box(point3(0, 0, 0), point3(165, 330, 165), white);
+        box1 = make_shared<rotate_y>(box1, 15);
+        box1 = make_shared<translate>(box1, vec3(265, 0, 295));
+        world.add(box1);
+
+        shared_ptr<hittable> box2 = box(point3(0, 0, 0), point3(165, 165, 165), white);
+        box2 = make_shared<rotate_y>(box2, -18);
+        box2 = make_shared<translate>(box2, vec3(130, 0, 65));
+        world.add(box2);
 
 
-        cam.samples_per_pixel = 200;
-        cam.max_depth = 5;
+        cam.samples_per_pixel = 5000;
+        cam.max_depth = 25;
         cam.background = color(0, 0, 0);
 
         cam.vfov = 40;
@@ -189,6 +195,7 @@ int main() {
         cam.vup = vec3(0, 1, 0);
 
         cam.defocus_angle = 0;
+        break;
     }
     case 4:
     {
@@ -196,11 +203,14 @@ int main() {
 
         world.add(make_shared<sphere>(point3(0, 2, 4), 1.0, red));
 
-        point_light light(point3(0, 2, 2), color(1, 1, 1), 0.1);
-        lights.push_back(light);
+        //point_light light(point3(0, 2, 2), color(1, 1, 1), 0.1);
+        //lights.push_back(light);
 
-        auto difflight = make_shared<diffuse_light>(color(10, 10, 10));
-        world.add(make_shared<sphere>(point3(0, 7, 0), 2, difflight));
+        // Create an emissive material and assign it to an object
+        shared_ptr<material> emissive = make_shared<emissive_light>(color(1.0, 1.0, 1.0)); // White light
+
+        auto difflight = make_shared<emissive_light>(color(10, 10, 10));
+        world.add(make_shared<sphere>(point3(0, 4, 0), 3, emissive));
 
         cam.samples_per_pixel = 200;
         cam.max_depth = 5;
@@ -210,6 +220,7 @@ int main() {
         cam.lookfrom = point3(0, 0, 0);
         cam.lookat = point3(0, 2, 4);
         cam.vup = vec3(0, 1, 0);
+        break;
     }
     }
 

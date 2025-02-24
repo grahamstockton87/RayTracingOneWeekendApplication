@@ -12,6 +12,7 @@
 #include <future>
 #include <algorithm>
 #include <fstream>
+#include <memory>
 
 #include "windows.h"
 #include <iostream>
@@ -217,6 +218,8 @@ private:
 		// If the material doesn't scatter, return the emitted color (if any)
 		ray scattered;
 		color attenuation;
+
+
 		if (!rec.mat->scatter(r, rec, attenuation, scattered)) {
 			return color_from_emission;
 		}
@@ -228,8 +231,10 @@ private:
 		// Recursively call ray_color for scattered rays
 		color color_from_scatter = attenuation * ray_color(scattered, depth - 1, world, lights);
 
-		// Combine the emission, scattered color, and lighting
+		//std::cout << "Non-Emissive Material Detected" << std::endl;
 		return color_from_emission + lighting + color_from_scatter;
+		
+
 	}
 
 	color get_lighting(const point3& p, const vec3& normal, std::vector<point_light>& lights) {

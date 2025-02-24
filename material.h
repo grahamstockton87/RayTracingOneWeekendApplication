@@ -102,7 +102,38 @@ public:
 private:
 	shared_ptr<texture> tex;
 };
+class emissive_light : public material {
+public:
+	emissive_light(shared_ptr<texture> tex) : tex(tex) {}
+	emissive_light(const color& emit) : tex(make_shared<solid_color>(emit)) {}
 
+	// Override the emitted function to keep the light emission behavior
+	color emitted(double u, double v, const point3& p) const override {
+		return tex->value(u, v, p);
+	}
 
+	// Override the scatter function to make sure the material doesn't scatter rays or contribute to the rendering
+	bool scatter(const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered) const override {
+		return false; // No scattering, as we don't want the object to render itself
+	}
 
+private:
+	shared_ptr<texture> tex;
+};
+
+class isotropic : public material {
+public:
+	isotropic(const color& albedo) : tex(make_shared<solid_color>(albedo)) {}
+	isotropic(shared_ptr<texture> tex) : tex(tex) {}
+
+	bool scatter(const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered)
+		const override {
+		scattered = ray(rec.p, random_unit_vector(), r_in.time());
+		attenuation = tex->value(rec.u, rec.v, rec.p);
+		return true;
+	}
+
+private:
+	shared_ptr<texture> tex;
+};
 #endif 
