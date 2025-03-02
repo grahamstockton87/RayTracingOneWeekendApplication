@@ -67,78 +67,84 @@ inline double point_distance(const point3 point, const point3 lookfrom) {
     ));
 }
 
+
+bool parseFaceVertex(const std::string & facePart, int& vertexIndex) {
+    std::istringstream ss(facePart);
+    std::string vertexIndexStr;
+
+    // Read the vertex index (everything until the first '/')
+    if (!std::getline(ss, vertexIndexStr, '/')) return false;
+
+    vertexIndex = std::stoi(vertexIndexStr);
+    return true;
+}
+
 bool loadObj(const std::string path, hittable_list& world, const shared_ptr<lambertian>mat) {
-    std::vector<vec3> vertices;
     std::ifstream file(path);
     if (!file.is_open()) {
-        std::cerr << "Failed to open the file!" << std::endl;
+        std::cerr << "Failed to open file: " << path << std::endl;
         return false;
     }
-
+    std::vector<vec3> vertices;
+    int counter = 0;
     std::string line;
     while (std::getline(file, line)) {
-        std::istringstream ss(line);
+        std::stringstream ss(line);
         std::string prefix;
         ss >> prefix;
+        
 
         if (prefix == "v") {
-            // Vertex position
+            // Read vertex position
             vec3 vertex;
-            ss >> vertex[0] >> vertex[1] >> vertex[2];
-            vertices.push_back(vertex);
-        }
-        else if (prefix == "f") {
-            // Handle face (triangle)
-            std::string v1, v2, v3;
-            if (ss >> v1 >> v2 >> v3) {
-                // Parse the face vertices
-                int i1, i2, i3;
-                std::stringstream v1_stream(v1);
-                std::stringstream v2_stream(v2);
-                std::stringstream v3_stream(v3);
-
-                // Parsing each face part
-                char slash; // For consuming '/' in "v/vt/vn" format
-
-                v1_stream >> i1; // Read vertex index
-                v2_stream >> i2; // Read vertex index
-                v3_stream >> i3; // Read vertex index
-
-                // Ensure the indices are within the valid range
-                if (i1 > 0 && i2 > 0 && i3 > 0 && i1 <= vertices.size() && i2 <= vertices.size() && i3 <= vertices.size()) {
-                    // Retrieve the vertices
-                    vec3 v0 = vertices[i1 - 1];
-                    vec3 v1 = vertices[i2 - 1];
-                    vec3 v2 = vertices[i3 - 1];
-
-                    // Check if the vertices are in counterclockwise order
-                    // Calculate the cross product to determine the orientation
-                    vec3 edge1 = v1 - v0;
-                    vec3 edge2 = v2 - v0;
-                    vec3 cross_product = cross(edge1, edge2);
-
-                    // If the cross product's z-component is negative, the vertices are clockwise
-                    // Swap the vertices to make it counterclockwise
-                    if (cross_product.z() < 0.0f) {
-                        std::swap(v1, v2); // Swap vertices 1 and 2 to reverse the winding order
-                    }
-
-                    // Add the triangle to the world
-                    world.add(make_shared<triangle>(v0, v1, v2, mat));
-                    std::cout << "Created Triangle: " << i1 << ", " << i2 << ", " << i3 << std::endl;
-                }
-                else {
-                    std::cerr << "Error: face indices out of range. Line: " << line << std::endl;
-                }
+            if (ss >> vertex[0] >> vertex[1] >> vertex[2]) {
+                vertices.push_back(vertex);
+                counter++;
             }
             else {
-                std::cerr << "Error parsing face line: " << line << std::endl;
+                std::cerr << "VERTEX NOT LOADED PROPERLY\n";
             }
+            
         }
+        else if (prefix == "f") {
+            // Read face (triangles or quads)
+            std::vector<int> faceIndices;
+            char discard;
+
+            // Read the first group "47/1/1"
+            std::string firstGroup;
+            ss >> firstGroup;
+
+            // Parse "47/1/1" into integers
+            std::stringstream groupStream(firstGroup);
+            int v0, v1, v2;
+
+            groupStream >> v0 >> discard >> v1 >> discard >> v2;
+
+
+            // Output to check
+            std::cout << "v: " << v0 << ", v1: " << v1 << ", v2: " << v2 << std::endl;
+
+            int maxIndex = static_cast<int>(vertices.size());
+
+            if (v0 < 1 || v0 > maxIndex ||
+                v1 < 1 || v1 > maxIndex ||
+                v2 < 1 || v2 > maxIndex) {
+                std::cerr << "Face references out-of-range vertex: "
+                    << v0 << ", " << v1 << ", " << v2 << std::endl;
+                continue;  // Skip this face
+            }
+
+            world.add(make_shared<triangle>(vertices[v0-1], vertices[v1-1], vertices[v2-1], mat));
+            
+        }
+        
     }
+    std::cout << "Counter" << counter;
     file.close();
     return true;
 }
+
 
 
 int main() {
@@ -428,13 +434,13 @@ int main() {
 
         world.add(make_shared<sphere>(point3(0, 0, 15), 4, light));
 
-        cam.samples_per_pixel = 300;
+        cam.samples_per_pixel = 30;
         cam.max_depth = 50;
         cam.background = color(0, 0, 0);
 
-        cam.vfov = 40;
-        cam.lookfrom = point3(0, 10, 30);
-        cam.lookat = point3(0, 5, 0);
+        cam.vfov = 20;
+        cam.lookfrom = point3(0, 5, 5);
+        cam.lookat = point3(0, 0, 0);
         cam.vup = vec3(0, 1, 0);
 
         cam.defocus_angle = 0;

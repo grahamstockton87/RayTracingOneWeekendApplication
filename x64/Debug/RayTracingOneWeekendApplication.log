@@ -9,6 +9,5 @@ C:\Users\graha\Documents\Visual Studio Projects 2024\Coding Projects\RayTracingO
           [
               _Rep=__int64
           ]
-C:\Users\graha\Documents\Visual Studio Projects 2024\Coding Projects\RayTracingOneWeekendApplication\RayTracingOneWeekendApplication\main.cpp(101,22): warning C4101: 'slash': unreferenced local variable
 C:\Users\graha\Documents\Visual Studio Projects 2024\Coding Projects\RayTracingOneWeekendApplication\RayTracingOneWeekendApplication\triangle.h(91): warning C4715: 'triangle::is_interior': not all control paths return a value
   RayTracingOneWeekendApplication.vcxproj -> C:\Users\graha\Documents\Visual Studio Projects 2024\Coding Projects\RayTracingOneWeekendApplication\x64\Debug\RayTracingOneWeekendApplication.exe
