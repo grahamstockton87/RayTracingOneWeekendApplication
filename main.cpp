@@ -17,6 +17,7 @@
 #include <future>
 #include <algorithm>
 #include <fstream>
+#include <sstream>
 
 #include "windows.h"
 
@@ -66,15 +67,87 @@ inline double point_distance(const point3 point, const point3 lookfrom) {
     ));
 }
 
+bool loadObj(const std::string path, hittable_list& world, const shared_ptr<lambertian>mat) {
+    std::vector<vec3> vertices;
+    std::ifstream file(path);
+    if (!file.is_open()) {
+        std::cerr << "Failed to open the file!" << std::endl;
+        return false;
+    }
+
+    std::string line;
+    while (std::getline(file, line)) {
+        std::istringstream ss(line);
+        std::string prefix;
+        ss >> prefix;
+
+        if (prefix == "v") {
+            // Vertex position
+            vec3 vertex;
+            ss >> vertex[0] >> vertex[1] >> vertex[2];
+            vertices.push_back(vertex);
+        }
+        else if (prefix == "f") {
+            // Handle face (triangle)
+            std::string v1, v2, v3;
+            if (ss >> v1 >> v2 >> v3) {
+                // Parse the face vertices
+                int i1, i2, i3;
+                std::stringstream v1_stream(v1);
+                std::stringstream v2_stream(v2);
+                std::stringstream v3_stream(v3);
+
+                // Parsing each face part
+                char slash; // For consuming '/' in "v/vt/vn" format
+
+                v1_stream >> i1; // Read vertex index
+                v2_stream >> i2; // Read vertex index
+                v3_stream >> i3; // Read vertex index
+
+                // Ensure the indices are within the valid range
+                if (i1 > 0 && i2 > 0 && i3 > 0 && i1 <= vertices.size() && i2 <= vertices.size() && i3 <= vertices.size()) {
+                    // Retrieve the vertices
+                    vec3 v0 = vertices[i1 - 1];
+                    vec3 v1 = vertices[i2 - 1];
+                    vec3 v2 = vertices[i3 - 1];
+
+                    // Check if the vertices are in counterclockwise order
+                    // Calculate the cross product to determine the orientation
+                    vec3 edge1 = v1 - v0;
+                    vec3 edge2 = v2 - v0;
+                    vec3 cross_product = cross(edge1, edge2);
+
+                    // If the cross product's z-component is negative, the vertices are clockwise
+                    // Swap the vertices to make it counterclockwise
+                    if (cross_product.z() < 0.0f) {
+                        std::swap(v1, v2); // Swap vertices 1 and 2 to reverse the winding order
+                    }
+
+                    // Add the triangle to the world
+                    world.add(make_shared<triangle>(v0, v1, v2, mat));
+                    std::cout << "Created Triangle: " << i1 << ", " << i2 << ", " << i3 << std::endl;
+                }
+                else {
+                    std::cerr << "Error: face indices out of range. Line: " << line << std::endl;
+                }
+            }
+            else {
+                std::cerr << "Error parsing face line: " << line << std::endl;
+            }
+        }
+    }
+    file.close();
+    return true;
+}
 
 
 int main() {
 
 
 
-    const char* image_name = "FinalScene.png";
+    const char* image_name = "TriangleBoxes.png";
 
-    int scene = 6;
+    int scene = 7;
 
     // World
     hittable_list world;
@@ -322,8 +395,8 @@ int main() {
         world.add(make_shared<constant_medium>(box1, 0.005, color(0, 0, 0)));
         world.add(make_shared<constant_medium>(box2, 0.005, color(0.2, 0.2, 0.2)));
 
-        cam.samples_per_pixel = 20;
-        cam.max_depth = 50;
+        cam.samples_per_pixel = 2000;
+        cam.max_depth = 10;
         cam.background = color(0, 0, 0);
 
         cam.vfov = 40;
@@ -333,43 +406,41 @@ int main() {
 
         cam.defocus_angle = 0;
         break;
+
+        }case 7: {
+
+
+        auto red = make_shared<lambertian>(color(.65, .05, .05));
+        auto green = make_shared<lambertian>(color(.12, .45, .15));
+        auto light = make_shared<diffuse_light>(color(15, 15, 15));
+
+
+        //world.add(make_shared<triangle>(point3(0, 0, 0), vec3(0, 10, 0), vec3(10, 0, 0),  red));
+
+        //world.add(make_shared<triangle>(point3(10, 0, 0), vec3(10, 10, 0), vec3(0, 10, 0),red));
+        //shared_ptr<hittable> quad1 = triangle_quad(point3(0, 0, 0), 10, 10, red);
+
+
+        //world.add(quad1);
+        if (loadObj("C:/Users/graha/Documents/Visual Studio Projects 2024/Coding Projects/RayTracingOneWeekendApplication/RayTracingOneWeekendApplication/monkey.obj", world, red)) {
+            std::cout << "Sucessful Loading Object";
+        };
+
+        world.add(make_shared<sphere>(point3(0, 0, 15), 4, light));
+
+        cam.samples_per_pixel = 300;
+        cam.max_depth = 50;
+        cam.background = color(0, 0, 0);
+
+        cam.vfov = 40;
+        cam.lookfrom = point3(0, 10, 30);
+        cam.lookat = point3(0, 5, 0);
+        cam.vup = vec3(0, 1, 0);
+
+        cam.defocus_angle = 0;
+        break;
     }
     }
-
-
-
-
-
-    //for (int a = -2; a < 3; a++) {
-    //    for (int b = -2; b < 3; b++) {
-    //        auto choose_mat = random_double();
-    //        point3 center(a + 0.9 * random_double(), 0.2, b + 0.9 * random_double());
-
-    //        if ((center - point3(4, 0.2, 0)).length() > 0.9) {
-    //            shared_ptr<material> sphere_material;
-
-    //            if (choose_mat < 0.8) {
-    //                // diffuse
-    //                auto albedo = color::random() * color::random();
-    //                sphere_material = make_shared<lambertian>(albedo);
-    //                auto center2 = center + vec3(0, random_double(0, .5), 0);
-    //                world.add(make_shared<sphere>(center, center2, 0.2, sphere_material));
-    //            }
-    //            else if (choose_mat < 0.95) {
-    //                // metal
-    //                auto albedo = color::random(0.5, 1);
-    //                auto fuzz = random_double(0, 0.5);
-    //                sphere_material = make_shared<metal>(albedo, fuzz);
-    //                world.add(make_shared<sphere>(center, 0.2, sphere_material));
-    //            }
-    //            else {
-    //                // glass
-    //                sphere_material = make_shared<dielectric>(1.5);
-    //                world.add(make_shared<sphere>(center, 0.2, sphere_material));
-    //            }
-    //        }
-    //    }
-    //}
 
 
     world = hittable_list(make_shared<bvh_node>(world));

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef TRIANGLE_H
+#define TRIANGLE_H
 
 #include "vec3.h"
 #include "hittable.h"
@@ -11,169 +12,129 @@ constexpr double kEpsilon = 1e-8;
 class triangle : public hittable {
 public:
     // Stationary Triangle Constructor
-    triangle(vec3 point1, vec3 point2, vec3 point3, std::shared_ptr<material> mat)
-        : v0_start(point1), v1_start(point2), v2_start(point3), mat(mat)
-    {
+    triangle(vec3 p0, vec3 p1, vec3 p2, std::shared_ptr<material> mat)
+        : p0(p0), p1(p1), p2(p2), mat(mat) {
         // Compute AABB for a stationary triangle
-        bbox = compute_aabb(v0_start, v1_start, v2_start);
-        std::cout << "default constructor";
+
+        vec3 n = cross(p1 - p0, p2 - p0); // Compute normal using cross product
+        normal = unit_vector(n);           // Normalize the normal
+        D = dot(normal, p0);               // Plane equation constant
+
+        set_bounding_box();
     }
-
-    // Moving Triangle Constructor
-    triangle(const vec3& p0_start, const vec3& p1_start, const vec3& p2_start,
-        const vec3& p0_end, const vec3& p1_end, const vec3& p2_end,
-        shared_ptr<material> mat)
-        : v0_start(p0_start), v1_start(p1_start), v2_start(p2_start),
-        v0_end(p0_end), v1_end(p1_end), v2_end(p2_end), mat(mat)
-    {
-        // Compute bounding boxes at t0 and t1
-        aabb box1 = compute_aabb(v0_start, v1_start, v2_start);
-        aabb box2 = compute_aabb(v0_end, v1_end, v2_end);
-
-        // Merge AABBs to get the full bounding range
-        bbox = aabb(box1, box2);
+    virtual void set_bounding_box() {
+        // Compute the bounding box of all four vertices.
+        auto bbox_diagonal1 = aabb(p0, p0 + p1 + p2);
+        auto bbox_diagonal2 = aabb(p0 + p1, p0 + p2);
+        bbox = aabb(bbox_diagonal1, bbox_diagonal2);
     }
-
-    bool hit(const ray& r, interval ray_t, hit_record& rec) const override {
-        //// Interpolate the triangle position at ray time
-        //vec3 v0, v1, v2;
-        //get_triangle_at_time(r.time(), v0, v1, v2);
-
-        //// Triangle edges
-        //vec3 v0v1 = v1 - v0;
-        //vec3 v0v2 = v2 - v0;
-
-        //// Determinant for Möller-Trumbore intersection test
-        //vec3 pvec = cross(r.direction(), v0v2);
-        //float det = dot(v0v1, pvec);
-
-        //// Ray parallel to triangle
-        //if (fabs(det) < kEpsilon) return false;
-
-        //float invDet = 1.0f / det;
-        //vec3 tvec = r.origin() - v0;
-
-        //// Compute barycentric coordinate u
-        //auto u = dot(tvec, pvec) * invDet;
-        //if (u < 0.0f || u > 1.0f) return false;
-
-        //// Compute barycentric coordinate v
-        //vec3 qvec = cross(tvec, v0v1);
-        //auto v = dot(r.direction(), qvec) * invDet;
-        //if (v < 0.0f || u + v > 1.0f) return false;
-
-        //// Compute t (intersection distance)
-        //auto t = dot(v0v2, qvec) * invDet;
-        //if (t < ray_t.min || t > ray_t.max) return false;
-
-        //// Record the hit
-        //rec.mat = mat;
-        //rec.p = r.at(t);
-        //rec.normal = unit_vector(cross(v0v1, v0v2));
-        //rec.t = t;
-        //rec.u = (1 - u - v) * uv0.x() + u * uv1.x() + v * uv2.x();
-        //rec.v = (1 - u - v) * uv0.y() + u * uv1.y() + v * uv2.y();
-        //return true;
-            // compute plane's normal
-            vec3 v0, v1, v2;
-            get_triangle_at_time(r.time(), v0, v1, v2);
-
-            vec3 v0v1 = v1 - v0;
-            vec3 v0v2 = v2 - v0;
-
-            // Compute normal using cross product
-            vec3 N = cross(v0v1, v0v2);
-
-            // Check if the ray is parallel to the triangle
-            float NdotRayDirection = dot(N, r.direction());
-            if (fabs(NdotRayDirection) < kEpsilon) return false;
-
-            // Compute intersection distance t
-            float t = (dot(N, v0) - dot(N, r.origin())) / NdotRayDirection;
-
-            // If t is outside the valid range, return false
-            if (t < ray_t.min || t > ray_t.max) return false;
-
-            // Compute intersection point
-            vec3 P = r.at(t);
-
-            // Compute the total area of the triangle
-            float area = N.length() / 2;
-
-            // Compute barycentric coordinates
-            vec3 C;
-
-            // Compute u (for triangle BCP)
-            vec3 v1p = P - v1;
-            vec3 v1v2 = v2 - v1;
-            C = cross(v1v2, v1p);
-            float u = (C.length() / 2) / area;
-            if (dot(N, C) < 0) return false;
-
-            // Compute v (for triangle CAP)
-            vec3 v2p = P - v2;
-            vec3 v2v0 = v0 - v2;
-            C = cross(v2v0, v2p);
-            float v = (C.length() / 2) / area;
-            if (dot(N, C) < 0) return false;
-
-            // Compute w (for triangle ABP)
-            vec3 v0p = P - v0;
-            C = cross(v0v1, v0p);
-            if (dot(N, C) < 0) return false;
-
-            // Compute real UV coordinates using barycentric interpolation
-            float w = 1.0f - u - v;
-            rec.u = (1 - u - v) * uv0.x() + u * uv1.x() + v * uv2.x();
-            rec.v = (1 - u - v) * uv0.y() + u * uv1.y() + v * uv2.y();
-
-            // The point is inside the triangle
-            rec.t = t;
-            rec.p = P;
-            rec.normal = unit_vector(N);
-            rec.mat = mat;
-
-            return true;
-        }
 
 
     aabb bounding_box() const override { return bbox; }
 
+    bool hit(const ray& r, interval ray_t, hit_record& rec) const override {
+        // Triangle edges
+        vec3 v0v1 = p1 - p0;
+        vec3 v0v2 = p2 - p0;
+
+        // Determinant for Möller-Trumbore intersection test
+        vec3 pvec = cross(r.direction(), v0v2);
+        float det = dot(v0v1, pvec);
+
+        // Ray parallel to triangle
+        if (fabs(det) < kEpsilon) return false;
+
+        float invDet = 1.0f / det;
+        vec3 tvec = r.origin() - p0;
+
+        // Compute barycentric coordinate u
+        auto u = dot(tvec, pvec) * invDet;
+        if (u < 0.0f || u > 1.0f) return false;
+
+        // Compute barycentric coordinate v
+        vec3 qvec = cross(tvec, v0v1);
+        auto v = dot(r.direction(), qvec) * invDet;
+        if (v < 0.0f || u + v > 1.0f) return false;
+
+        // Compute t (intersection distance)
+        auto t = dot(v0v2, qvec) * invDet;
+        if (t < ray_t.min || t > ray_t.max) return false;
+
+        point3 intersection = r.at(t);
+
+        // Compute barycentric coordinates for UV interpolation
+        float alpha = (1 - u - v);
+        float beta = u;
+        float gamma = v;
+
+        if (!is_interior(alpha, beta, rec)) return false;
+
+        // Interpolate UV coordinates based on barycentric coordinates
+        rec.u = alpha * uv0.x() + beta * uv1.x() + gamma * uv2.x();
+        rec.v = alpha * uv0.y() + beta * uv1.y() + gamma * uv2.y();
+
+        // Set hit record
+        rec.t = t;
+        rec.p = intersection;
+        rec.mat = mat;
+        rec.set_face_normal(r, normal);
+
+        return true;
+    }
+
+    virtual bool is_interior(double a, double b, hit_record& rec) const {
+        interval unit_interval = interval(0, 1);
+        // Check if the barycentric coordinates are within the triangle
+        if (!unit_interval.contains(a) || !unit_interval.contains(b))
+            return false;
+
+    }
+
 private:
-    vec3 v0_start, v1_start, v2_start; // Triangle start position
-    vec3 v0_end, v1_end, v2_end;       // Triangle end position
+    vec3 p0, p1, p2;            // Triangle vertices
     std::shared_ptr<material> mat;
     aabb bbox;
 
-    // Interpolates the triangle's position at a given time t
+    // Interpolates the triangle's position at a given time t (unused if stationary)
     void get_triangle_at_time(double time, vec3& v0, vec3& v1, vec3& v2) const {
-        v0 = v0_start + time * (v0_end - v0_start);
-        v1 = v1_start + time * (v1_end - v1_start);
-        v2 = v2_start + time * (v2_end - v2_start);
-    }
-    // Computes AABB for given triangle vertices
-    aabb compute_aabb(const vec3& p0, const vec3& p1, const vec3& p2) const {
-        vec3 min_point(
-            fmin(p0.x(), fmin(p1.x(), p2.x())),
-            fmin(p0.y(), fmin(p1.y(), p2.y())),
-            fmin(p0.z(), fmin(p1.z(), p2.z()))
-        );
-
-        vec3 max_point(
-            fmax(p0.x(), fmax(p1.x(), p2.x())),
-            fmax(p0.y(), fmax(p1.y(), p2.y())),
-            fmax(p0.z(), fmax(p1.z(), p2.z()))
-        );
-
-        // Add a small epsilon to avoid BVH skipping small triangles
-        vec3 padding(0.0001, 0.0001, 0.0001);
-        return aabb(min_point - padding, max_point + padding);
+        v0 = p0;
+        v1 = p1;
+        v2 = p2;
     }
 
 private:
     vec3 uv0 = vec3(0, 0, 0);
     vec3 uv1 = vec3(1, 0, 0);
     vec3 uv2 = vec3(0, 1, 0);
+
+    vec3 normal;   // Normal of the triangle plane
+    double D;      // Plane equation constant
 };
 
-// https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle/barycentric-coordinates.html
+
+inline shared_ptr<hittable_list> triangle_quad(const point3& orig, double height, double width, shared_ptr<material> mat)
+{
+    // Returns the 2d quad
+
+    auto sides = make_shared<hittable_list>();
+    // Left triangle (counter-clockwise)
+    sides->add(make_shared<triangle>(
+        point3(orig),
+        vec3(orig.x(), height + orig.x(), orig.z()),
+        vec3(width + orig.x(), orig.y(), orig.z()),
+        mat
+    ));
+
+    // Right triangle (counter-clockwise)
+    sides->add(make_shared<triangle>(
+        point3(orig.x() + width, orig.y(), orig.z()),
+        vec3(orig.x() + width, orig.y() + height, orig.z()),
+        vec3(orig.x(), height + orig.y(), orig.z()),
+        mat
+    ));
+
+
+    return sides;
+}
+
+#endif
