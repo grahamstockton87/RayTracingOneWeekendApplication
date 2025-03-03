@@ -23,10 +23,19 @@ public:
         set_bounding_box();
     }
     virtual void set_bounding_box() {
-        // Compute the bounding box of all four vertices.
-        auto bbox_diagonal1 = aabb(p0, p0 + p1 + p2);
-        auto bbox_diagonal2 = aabb(p0 + p1, p0 + p2);
-        bbox = aabb(bbox_diagonal1, bbox_diagonal2);
+        vec3 min_point(
+            std::min({ p0.x(), p1.x(), p2.x() }),
+            std::min({ p0.y(), p1.y(), p2.y() }),
+            std::min({ p0.z(), p1.z(), p2.z() })
+        );
+
+        vec3 max_point(
+            std::max({ p0.x(), p1.x(), p2.x() }),
+            std::max({ p0.y(), p1.y(), p2.y() }),
+            std::max({ p0.z(), p1.z(), p2.z() })
+        );
+
+        bbox = aabb(min_point, max_point);
     }
 
 
@@ -87,6 +96,7 @@ public:
         // Check if the barycentric coordinates are within the triangle
         if (!unit_interval.contains(a) || !unit_interval.contains(b))
             return false;
+        return true;
 
     }
 
@@ -102,6 +112,9 @@ private:
         v2 = p2;
     }
 
+
+
+
 private:
     vec3 uv0 = vec3(0, 0, 0);
     vec3 uv1 = vec3(1, 0, 0);
@@ -112,7 +125,7 @@ private:
 };
 
 
-inline shared_ptr<hittable_list> triangle_quad(const point3& orig, double height, double width, shared_ptr<material> mat)
+inline std::shared_ptr<hittable_list> triangle_quad(const point3& orig, double height, double width, shared_ptr<material> mat)
 {
     // Returns the 2d quad
 

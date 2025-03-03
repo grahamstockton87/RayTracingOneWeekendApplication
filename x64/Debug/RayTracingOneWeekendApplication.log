@@ -1,13 +1,12 @@
 ﻿  main.cpp
 C:\Users\graha\Documents\Visual Studio Projects 2024\Coding Projects\RayTracingOneWeekendApplication\RayTracingOneWeekendApplication\vec3.h(104,14): warning C4804: '<=': unsafe use of type 'bool' in operation
-C:\Users\graha\Documents\Visual Studio Projects 2024\Coding Projects\RayTracingOneWeekendApplication\RayTracingOneWeekendApplication\triangle.h(42,19): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\graha\Documents\Visual Studio Projects 2024\Coding Projects\RayTracingOneWeekendApplication\RayTracingOneWeekendApplication\triangle.h(66,21): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\graha\Documents\Visual Studio Projects 2024\Coding Projects\RayTracingOneWeekendApplication\RayTracingOneWeekendApplication\triangle.h(67,20): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\graha\Documents\Visual Studio Projects 2024\Coding Projects\RayTracingOneWeekendApplication\RayTracingOneWeekendApplication\triangle.h(68,21): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\graha\Documents\Visual Studio Projects 2024\Coding Projects\RayTracingOneWeekendApplication\RayTracingOneWeekendApplication\triangle.h(51,19): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\graha\Documents\Visual Studio Projects 2024\Coding Projects\RayTracingOneWeekendApplication\RayTracingOneWeekendApplication\triangle.h(75,21): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\graha\Documents\Visual Studio Projects 2024\Coding Projects\RayTracingOneWeekendApplication\RayTracingOneWeekendApplication\triangle.h(76,20): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\graha\Documents\Visual Studio Projects 2024\Coding Projects\RayTracingOneWeekendApplication\RayTracingOneWeekendApplication\triangle.h(77,21): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
 C:\Users\graha\Documents\Visual Studio Projects 2024\Coding Projects\RayTracingOneWeekendApplication\RayTracingOneWeekendApplication\camera.h(115,21): warning C4244: 'initializing': conversion from '_Rep' to 'double', possible loss of data
           with
           [
               _Rep=__int64
           ]
-C:\Users\graha\Documents\Visual Studio Projects 2024\Coding Projects\RayTracingOneWeekendApplication\RayTracingOneWeekendApplication\triangle.h(91): warning C4715: 'triangle::is_interior': not all control paths return a value
   RayTracingOneWeekendApplication.vcxproj -> C:\Users\graha\Documents\Visual Studio Projects 2024\Coding Projects\RayTracingOneWeekendApplication\x64\Debug\RayTracingOneWeekendApplication.exe

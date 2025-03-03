@@ -12,6 +12,8 @@
 #include "texture.h"
 #include "constant_medium.h"
 
+#include "tiny_obj_loader.h"
+
 
 #include <string>
 #include <future>
@@ -79,71 +81,163 @@ bool parseFaceVertex(const std::string & facePart, int& vertexIndex) {
     return true;
 }
 
-bool loadObj(const std::string path, hittable_list& world, const shared_ptr<lambertian>mat) {
+bool loadObj(const std::string path, hittable_list& world, const shared_ptr<lambertian> mat) {
     std::ifstream file(path);
     if (!file.is_open()) {
         std::cerr << "Failed to open file: " << path << std::endl;
         return false;
     }
+
     std::vector<vec3> vertices;
-    int counter = 0;
+
     std::string line;
     while (std::getline(file, line)) {
-        std::stringstream ss(line);
+        std::istringstream ss(line);
         std::string prefix;
         ss >> prefix;
-        
 
         if (prefix == "v") {
-            // Read vertex position
             vec3 vertex;
-            if (ss >> vertex[0] >> vertex[1] >> vertex[2]) {
-                vertices.push_back(vertex);
-                counter++;
-            }
-            else {
-                std::cerr << "VERTEX NOT LOADED PROPERLY\n";
-            }
-            
+            ss >> vertex[0] >> vertex[1] >> vertex[2];
+            vertices.push_back(vertex);
+            std::cout << "Vertex " << vertices.size() << ": "
+                << vertex[0] << " " << vertex[1] << " " << vertex[2] << std::endl;
         }
         else if (prefix == "f") {
-            // Read face (triangles or quads)
-            std::vector<int> faceIndices;
-            char discard;
+            std::vector<int> vertexIndices;
 
-            // Read the first group "47/1/1"
-            std::string firstGroup;
-            ss >> firstGroup;
+            std::string group;
+            while (ss >> group) {
+                std::istringstream groupStream(group);
+                int v, vt, vn;
+                char discard;
 
-            // Parse "47/1/1" into integers
-            std::stringstream groupStream(firstGroup);
-            int v0, v1, v2;
-
-            groupStream >> v0 >> discard >> v1 >> discard >> v2;
-
-
-            // Output to check
-            std::cout << "v: " << v0 << ", v1: " << v1 << ", v2: " << v2 << std::endl;
-
-            int maxIndex = static_cast<int>(vertices.size());
-
-            if (v0 < 1 || v0 > maxIndex ||
-                v1 < 1 || v1 > maxIndex ||
-                v2 < 1 || v2 > maxIndex) {
-                std::cerr << "Face references out-of-range vertex: "
-                    << v0 << ", " << v1 << ", " << v2 << std::endl;
-                continue;  // Skip this face
+                groupStream >> v >> discard >> vt >> discard >> vn;
+                vertexIndices.push_back(v);
             }
 
-            world.add(make_shared<triangle>(vertices[v0-1], vertices[v1-1], vertices[v2-1], mat));
-            
+            std::cout << "Parsed face with vertices:";
+            for (int idx : vertexIndices) {
+                std::cout << " " << idx;
+            }
+            std::cout << std::endl;
+
+            if (vertexIndices.size() < 3) {
+                std::cerr << "Skipping malformed face with only " << vertexIndices.size() << " vertices." << std::endl;
+                continue;
+            }
+
+            int maxIndex = static_cast<int>(vertices.size());
+            bool valid = true;
+            for (int idx : vertexIndices) {
+                if (idx < 1 || idx > maxIndex) {
+                    std::cerr << "Face references out-of-range vertex: " << idx
+                        << " (only have " << maxIndex << " vertices)" << std::endl;
+                    valid = false;
+                    break;
+                }
+            }
+            if (!valid) continue;
+
+            if (vertexIndices.size() == 3) {
+                world.add(make_shared<triangle>(
+                    vertices[vertexIndices[0] - 1],
+                    vertices[vertexIndices[1] - 1],
+                    vertices[vertexIndices[2] - 1],
+                    mat
+                ));
+            }
+            else if (vertexIndices.size() == 4) {
+                world.add(make_shared<triangle>(
+                    vertices[vertexIndices[0] - 1],
+                    vertices[vertexIndices[1] - 1],
+                    vertices[vertexIndices[2] - 1],
+                    mat
+                ));
+                world.add(make_shared<triangle>(
+                    vertices[vertexIndices[0] - 1],
+                    vertices[vertexIndices[2] - 1],
+                    vertices[vertexIndices[3] - 1],
+                    mat
+                ));
+            }
+            else {
+                std::cerr << "Skipping unsupported face with " << vertexIndices.size() << " vertices." << std::endl;
+            }
         }
-        
     }
-    std::cout << "Counter" << counter;
+
     file.close();
     return true;
 }
+void LoadObjLib(const std::string& filename, hittable_list& world, const shared_ptr<lambertian> mat) {
+    tinyobj::ObjReaderConfig reader_config;
+    reader_config.mtl_search_path = "./"; // Path to look for MTL files (if any)
+
+    tinyobj::ObjReader reader;
+
+    if (!reader.ParseFromFile(filename, reader_config)) {
+        if (!reader.Error().empty()) {
+            std::cerr << "TinyObjReader: " << reader.Error() << std::endl;
+        }
+        exit(1);
+    }
+
+    if (!reader.Warning().empty()) {
+        std::cout << "TinyObjReader Warning: " << reader.Warning() << std::endl;
+    }
+
+    const tinyobj::attrib_t& attrib = reader.GetAttrib();
+    const std::vector<tinyobj::shape_t>& shapes = reader.GetShapes();
+    const std::vector<tinyobj::material_t>& materials = reader.GetMaterials();
+    std::vector<vec3> vertices;
+
+    // Loop over shapes (each shape is typically a mesh or object in the OBJ file)
+    for (size_t s = 0; s < shapes.size(); s++) {
+        //std::cout << "Shape " << s << ": " << shapes[s].name << std::endl;
+
+        // Loop over faces (each face can have 3 or more vertices)
+        size_t index_offset = 0;
+        for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++) {
+            int fv = shapes[s].mesh.num_face_vertices[f];
+
+            // Loop over vertices in the face
+            for (size_t v = 0; v < fv; v++) {
+                tinyobj::index_t idx = shapes[s].mesh.indices[index_offset + v];
+
+                // Access vertex data
+                float vx = attrib.vertices[3 * idx.vertex_index + 0];
+                float vy = attrib.vertices[3 * idx.vertex_index + 1];
+                float vz = attrib.vertices[3 * idx.vertex_index + 2];
+
+                vec3 vert(vx, vy, vz);
+                vertices.push_back(vert);
+                //std::cout << "  v(" << vx << ", " << vy << ", " << vz << ")";
+
+                if (idx.normal_index >= 0) {
+                    float nx = attrib.normals[3 * idx.normal_index + 0];
+                    float ny = attrib.normals[3 * idx.normal_index + 1];
+                    float nz = attrib.normals[3 * idx.normal_index + 2];
+                    //std::cout << " n(" << nx << ", " << ny << ", " << nz << ")";
+                }
+
+                if (idx.texcoord_index >= 0) {
+                    float tx = attrib.texcoords[2 * idx.texcoord_index + 0];
+                    float ty = attrib.texcoords[2 * idx.texcoord_index + 1];
+                    //std::cout << " t(" << tx << ", " << ty << ")";
+                }
+
+                std::cout << std::endl;
+            }
+            index_offset += fv;
+        }
+    }
+    //  make triangles
+    for (int i = 0; i < vertices.size();i+=3) {
+        world.add(make_shared<triangle>(vertices[i], vertices[i+1], vertices[i+2], mat));
+    }
+}
+
 
 
 
@@ -418,7 +512,7 @@ int main() {
 
         auto red = make_shared<lambertian>(color(.65, .05, .05));
         auto green = make_shared<lambertian>(color(.12, .45, .15));
-        auto light = make_shared<diffuse_light>(color(15, 15, 15));
+        auto light = make_shared<diffuse_light>(color(50, 50, 50));
 
 
         //world.add(make_shared<triangle>(point3(0, 0, 0), vec3(0, 10, 0), vec3(10, 0, 0),  red));
@@ -428,19 +522,19 @@ int main() {
 
 
         //world.add(quad1);
-        if (loadObj("C:/Users/graha/Documents/Visual Studio Projects 2024/Coding Projects/RayTracingOneWeekendApplication/RayTracingOneWeekendApplication/monkey.obj", world, red)) {
-            std::cout << "Sucessful Loading Object";
-        };
-
+        //if (loadObj("C:/Users/graha/Documents/Visual Studio Projects 2024/Coding Projects/RayTracingOneWeekendApplication/RayTracingOneWeekendApplication/monkey.obj", world, red)) {
+        //    std::cout << "Sucessful Loading Object";
+        //};
+        LoadObjLib("C:/Users/graha/Documents/Visual Studio Projects 2024/Coding Projects/RayTracingOneWeekendApplication/RayTracingOneWeekendApplication/car.obj", world, red);
         world.add(make_shared<sphere>(point3(0, 0, 15), 4, light));
 
-        cam.samples_per_pixel = 30;
+        cam.samples_per_pixel = 10;
         cam.max_depth = 50;
         cam.background = color(0, 0, 0);
 
         cam.vfov = 20;
-        cam.lookfrom = point3(0, 5, 5);
-        cam.lookat = point3(0, 0, 0);
+        cam.lookfrom = point3(8, 5, 10);
+        cam.lookat = point3(0, 0, -5);
         cam.vup = vec3(0, 1, 0);
 
         cam.defocus_angle = 0;
