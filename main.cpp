@@ -5,14 +5,12 @@
 #include "hittable.h"
 #include "sphere.h"
 #include "triangle.h"
-#include "camera.h"
+#include "cameraGPU.cuh"
 #include "quad.h"
 #include "point_light.h"
 //#include "cameraGPU.cuh"
 #include "texture.h"
 #include "constant_medium.h"
-
-#include "tiny_obj_loader.h"
 
 
 #include <string>
@@ -20,6 +18,7 @@
 #include <algorithm>
 #include <fstream>
 #include <sstream>
+#include <regex>
 
 #include "windows.h"
 
@@ -52,6 +51,38 @@ bool delete_image(const char* filename) {
     }
 }
 
+
+std::string getNextFilename(const std::string& originalName) {
+
+    // Break name into "base" and "extension"
+    size_t lastDot = originalName.find_last_of('.');
+    std::string base = (lastDot == std::string::npos) ? originalName : originalName.substr(0, lastDot);
+    std::string extension = (lastDot == std::string::npos) ? "" : originalName.substr(lastDot);
+
+    // Regex to match (number) at the end
+    std::regex numberedRegex(R"(^(.*)\((\d+)\)$)");
+    std::smatch match;
+
+    int number = 1;
+
+    if (std::regex_match(base, match, numberedRegex)) {
+        // Found something like "image(3)"
+        base = match[1].str();      // the part before (number)
+        number = std::stoi(match[2].str()) + 1; // Increment number
+    }
+    else {
+        base = base; // no (n), start at (1)
+    }
+
+    // Search for the first unused filename
+    std::string newName;
+
+    newName = base + "(" + std::to_string(number) + ")" + extension;
+    number++;
+
+    return newName;
+}
+
 using color = vec3; 
 
 inline double clamp(double value, double min_val, double max_val) {
@@ -68,7 +99,6 @@ inline double point_distance(const point3 point, const point3 lookfrom) {
         pow(point.z() - lookfrom.z(), 2)
     ));
 }
-
 
 bool parseFaceVertex(const std::string & facePart, int& vertexIndex) {
     std::istringstream ss(facePart);
@@ -100,8 +130,8 @@ bool loadObj(const std::string path, hittable_list& world, const shared_ptr<lamb
             vec3 vertex;
             ss >> vertex[0] >> vertex[1] >> vertex[2];
             vertices.push_back(vertex);
-            std::cout << "Vertex " << vertices.size() << ": "
-                << vertex[0] << " " << vertex[1] << " " << vertex[2] << std::endl;
+            //std::cout << "Vertex " << vertices.size() << ": "
+                //<< vertex[0] << " " << vertex[1] << " " << vertex[2] << std::endl;
         }
         else if (prefix == "f") {
             std::vector<int> vertexIndices;
@@ -116,11 +146,11 @@ bool loadObj(const std::string path, hittable_list& world, const shared_ptr<lamb
                 vertexIndices.push_back(v);
             }
 
-            std::cout << "Parsed face with vertices:";
+            //std::cout << "Parsed face with vertices:";
             for (int idx : vertexIndices) {
-                std::cout << " " << idx;
+                //std::cout << " " << idx;
             }
-            std::cout << std::endl;
+            //std::cout << std::endl;
 
             if (vertexIndices.size() < 3) {
                 std::cerr << "Skipping malformed face with only " << vertexIndices.size() << " vertices." << std::endl;
@@ -170,82 +200,80 @@ bool loadObj(const std::string path, hittable_list& world, const shared_ptr<lamb
     file.close();
     return true;
 }
-void LoadObjLib(const std::string& filename, hittable_list& world, const shared_ptr<lambertian> mat) {
-    tinyobj::ObjReaderConfig reader_config;
-    reader_config.mtl_search_path = "./"; // Path to look for MTL files (if any)
-
-    tinyobj::ObjReader reader;
-
-    if (!reader.ParseFromFile(filename, reader_config)) {
-        if (!reader.Error().empty()) {
-            std::cerr << "TinyObjReader: " << reader.Error() << std::endl;
-        }
-        exit(1);
-    }
-
-    if (!reader.Warning().empty()) {
-        std::cout << "TinyObjReader Warning: " << reader.Warning() << std::endl;
-    }
-
-    const tinyobj::attrib_t& attrib = reader.GetAttrib();
-    const std::vector<tinyobj::shape_t>& shapes = reader.GetShapes();
-    const std::vector<tinyobj::material_t>& materials = reader.GetMaterials();
-    std::vector<vec3> vertices;
-
-    // Loop over shapes (each shape is typically a mesh or object in the OBJ file)
-    for (size_t s = 0; s < shapes.size(); s++) {
-        //std::cout << "Shape " << s << ": " << shapes[s].name << std::endl;
-
-        // Loop over faces (each face can have 3 or more vertices)
-        size_t index_offset = 0;
-        for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++) {
-            int fv = shapes[s].mesh.num_face_vertices[f];
-
-            // Loop over vertices in the face
-            for (size_t v = 0; v < fv; v++) {
-                tinyobj::index_t idx = shapes[s].mesh.indices[index_offset + v];
-
-                // Access vertex data
-                float vx = attrib.vertices[3 * idx.vertex_index + 0];
-                float vy = attrib.vertices[3 * idx.vertex_index + 1];
-                float vz = attrib.vertices[3 * idx.vertex_index + 2];
-
-                vec3 vert(vx, vy, vz);
-                vertices.push_back(vert);
-                //std::cout << "  v(" << vx << ", " << vy << ", " << vz << ")";
-
-                if (idx.normal_index >= 0) {
-                    float nx = attrib.normals[3 * idx.normal_index + 0];
-                    float ny = attrib.normals[3 * idx.normal_index + 1];
-                    float nz = attrib.normals[3 * idx.normal_index + 2];
-                    //std::cout << " n(" << nx << ", " << ny << ", " << nz << ")";
-                }
-
-                if (idx.texcoord_index >= 0) {
-                    float tx = attrib.texcoords[2 * idx.texcoord_index + 0];
-                    float ty = attrib.texcoords[2 * idx.texcoord_index + 1];
-                    //std::cout << " t(" << tx << ", " << ty << ")";
-                }
-
-                std::cout << std::endl;
-            }
-            index_offset += fv;
-        }
-    }
-    //  make triangles
-    for (int i = 0; i < vertices.size();i+=3) {
-        world.add(make_shared<triangle>(vertices[i], vertices[i+1], vertices[i+2], mat));
-    }
-}
-
-
-
+////void LoadObjLib(const std::string& filename, hittable_list& world, const shared_ptr<lambertian> mat) {
+//    tinyobj::ObjReaderConfig reader_config;
+//    reader_config.mtl_search_path = "./"; // Path to look for MTL files (if any)
+//
+//    tinyobj::ObjReader reader;
+//
+//    if (!reader.ParseFromFile(filename, reader_config)) {
+//        if (!reader.Error().empty()) {
+//            std::cerr << "TinyObjReader: " << reader.Error() << std::endl;
+//        }
+//        exit(1);
+//    }
+//
+//    if (!reader.Warning().empty()) {
+//        std::cout << "TinyObjReader Warning: " << reader.Warning() << std::endl;
+//        
+//    }
+//
+//    const tinyobj::attrib_t& attrib = reader.GetAttrib();
+//    const std::vector<tinyobj::shape_t>& shapes = reader.GetShapes();
+//    const std::vector<tinyobj::material_t>& materials = reader.GetMaterials();
+//    std::vector<vec3> vertices;
+//
+//    // Loop over shapes (each shape is typically a mesh or object in the OBJ file)
+//    for (size_t s = 0; s < shapes.size(); s++) {
+//        //std::cout << "Shape " << s << ": " << shapes[s].name << std::endl;
+//
+//        // Loop over faces (each face can have 3 or more vertices)
+//        size_t index_offset = 0;
+//        for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++) {
+//            int fv = shapes[s].mesh.num_face_vertices[f];
+//
+//            // Loop over vertices in the face
+//            for (size_t v = 0; v < fv; v++) {
+//                tinyobj::index_t idx = shapes[s].mesh.indices[index_offset + v];
+//
+//                // Access vertex data
+//                float vx = attrib.vertices[3 * idx.vertex_index + 0];
+//                float vy = attrib.vertices[3 * idx.vertex_index + 1];
+//                float vz = attrib.vertices[3 * idx.vertex_index + 2];
+//
+//                vec3 vert(vx, vy, vz);
+//                vertices.push_back(vert);
+//                //std::cout << "  v(" << vx << ", " << vy << ", " << vz << ")";
+//
+//                if (idx.normal_index >= 0) {
+//                    float nx = attrib.normals[3 * idx.normal_index + 0];
+//                    float ny = attrib.normals[3 * idx.normal_index + 1];
+//                    float nz = attrib.normals[3 * idx.normal_index + 2];
+//                    //std::cout << " n(" << nx << ", " << ny << ", " << nz << ")";
+//                }
+//
+//                if (idx.texcoord_index >= 0) {
+//                    float tx = attrib.texcoords[2 * idx.texcoord_index + 0];
+//                    float ty = attrib.texcoords[2 * idx.texcoord_index + 1];
+//                    //std::cout << " t(" << tx << ", " << ty << ")";
+//                }
+//
+//                //std::cout << std::endl;
+//            }
+//            index_offset += fv;
+//        }
+//    }
+//    //  make triangles
+//    for (int i = 0; i < vertices.size();i+=3) {
+//        world.add(make_shared<triangle>(vertices[i], vertices[i+1], vertices[i+2], mat));
+//    }
+//}
 
 int main() {
 
 
 
-    const char* image_name = "TriangleBoxes.png";
+    std::string image_name_working = "man.png";
 
     int scene = 7;
 
@@ -284,7 +312,6 @@ int main() {
         auto globe = make_shared<sphere>(point3(0, 1, 5), 1.0, earth_surface);
         world.add(globe);
 
-        cam.image_name = image_name;
         cam.samples_per_pixel = 10;
         cam.max_depth = 50;
 
@@ -372,8 +399,7 @@ int main() {
         cam.defocus_angle = 0;
         break;
     }
-    case 4:
-    {
+    case 4: {
         auto red = make_shared<lambertian>(color(.65, .05, .05));
 
         world.add(make_shared<sphere>(point3(0, 2, 4), 1.0, red));
@@ -469,13 +495,15 @@ int main() {
         cam.defocus_angle = 0;
         break;
 
-    }case 6: {
+    }
+    case 6: {
         
         
         auto red = make_shared<lambertian>(color(.65, .05, .05));
         auto white = make_shared<lambertian>(color(.73, .73, .73));
         auto green = make_shared<lambertian>(color(.12, .45, .15));
         auto light = make_shared<diffuse_light>(color(7, 7, 7));
+
 
         world.add(make_shared<quad>(point3(555, 0, 0), vec3(0, 555, 0), vec3(0, 0, 555), green));
         world.add(make_shared<quad>(point3(0, 0, 0), vec3(0, 555, 0), vec3(0, 0, 555), red));
@@ -507,35 +535,41 @@ int main() {
         cam.defocus_angle = 0;
         break;
 
-        }case 7: {
+        }
+    case 7: {
 
-
+        auto male_texture = make_shared<image_texture>("C:/Users/graha/Documents/Visual Studio Projects 2024/Coding Projects/RayTracingOneWeekendApplication/RayTracingOneWeekendApplication/male_texture.jpg");
+        auto male_material = make_shared<lambertian>(male_texture);
         auto red = make_shared<lambertian>(color(.65, .05, .05));
+        auto grey = make_shared<lambertian>(color(0.1,0.1,0.1));
         auto green = make_shared<lambertian>(color(.12, .45, .15));
-        auto light = make_shared<diffuse_light>(color(50, 50, 50));
+        auto light = make_shared<diffuse_light>(color(10, 10, 10));
+        auto checkerT = make_shared<checker_texture_triangle>(0.5, color(0, 0, 0), color(.9, .9, .9));
+        auto noiseT = make_shared<noise_texture>(20);
+        auto noise = make_shared<lambertian>(noiseT);
+        auto checker = make_shared<lambertian>(checkerT);
+        auto metalMat = make_shared<metal>(color(0,0,0),0.2);
+
+        if (loadObj("C:/Users/graha/Documents/Visual Studio Projects 2024/Coding Projects/RayTracingOneWeekendApplication/RayTracingOneWeekendApplication/guy.obj", world, male_material)) {
+            std::cout << "Sucessful Loading Object\n";
+        }
+        
+        world.add(make_shared<quad>(point3(0, 6, 0), vec3(30, 6, 0), vec3(30, 6, 30), light));
+        //make_shared<translate>(base, vec3(0, 0, 0));
+        world.add(make_shared<sphere>(point3(0, -1005, 0), 1000, grey));
+        world.add(make_shared<sphere>(point3(0, 5, -15), 5, light));
 
 
-        //world.add(make_shared<triangle>(point3(0, 0, 0), vec3(0, 10, 0), vec3(10, 0, 0),  red));
 
-        //world.add(make_shared<triangle>(point3(10, 0, 0), vec3(10, 10, 0), vec3(0, 10, 0),red));
-        //shared_ptr<hittable> quad1 = triangle_quad(point3(0, 0, 0), 10, 10, red);
-
-
-        //world.add(quad1);
-        //if (loadObj("C:/Users/graha/Documents/Visual Studio Projects 2024/Coding Projects/RayTracingOneWeekendApplication/RayTracingOneWeekendApplication/monkey.obj", world, red)) {
-        //    std::cout << "Sucessful Loading Object";
-        //};
-        LoadObjLib("C:/Users/graha/Documents/Visual Studio Projects 2024/Coding Projects/RayTracingOneWeekendApplication/RayTracingOneWeekendApplication/car.obj", world, red);
-        world.add(make_shared<sphere>(point3(0, 0, 15), 4, light));
-
-        cam.samples_per_pixel = 10;
+        cam.samples_per_pixel = 200;
         cam.max_depth = 50;
         cam.background = color(0, 0, 0);
 
-        cam.vfov = 20;
-        cam.lookfrom = point3(8, 5, 10);
-        cam.lookat = point3(0, 0, -5);
+        cam.vfov = 8;
+        cam.lookfrom = point3(8, 5, -10);
+        cam.lookat = point3(0, 0.9, 0);
         cam.vup = vec3(0, 1, 0);
+        cam.focus_dist = point_distance(cam.lookat, cam.lookfrom)-0.5;
 
         cam.defocus_angle = 0;
         break;
@@ -545,34 +579,38 @@ int main() {
 
     world = hittable_list(make_shared<bvh_node>(world));
 
-//  CAMERA SETTINGS ---------------------------------------------------------------------------
+//  FILE SETTINGS ---------------------------------------------------------------------------
 
-    cam.image_name = image_name;
+    if (fileExists(cam.image_name)) {
+        getNextFilename(image_name_working);
+    }
+    cam.image_name = image_name_working.c_str();
 
 
 // --------------------------------------------------------------------------------------------
 
     // Image
 
-    if (fileExists(cam.image_name)) {
-        std::cout << "File already exists. Would you like to delete? (y/n)" << std::endl;
-        std::string input;
-        std::cin >> input;
-        if (input == "y") {
-            if (!delete_image(image_name)) { return -1; }
-        }
-        else {
-            return 0;
-        }
+    //if (fileExists(cam.image_name)) {
+        //std::cout << "File already exists. Would you like to delete? (y/n)" << std::endl;
+        //std::string input;
+        //std::cin >> input;
+        //if (input == "y") {
+        //    if (!delete_image(image_name)) { return -1; }
+        //}
+        //else {
+        //    return 0;
+        //}
         
-    }
+    //}
 
+    std::cout << "Rendering Image: " << cam.image_name << std::endl;
     // Render
     cam.render(world, lights);
 
 
     // Convert file name to wide string
-    std::wstring image_name_wide_string = ConvertToWideString(image_name);
+    std::wstring image_name_wide_string = ConvertToWideString(cam.image_name);
 
     // Use ShellExecuteW to open the file with the default viewer
     HINSTANCE result = ShellExecuteW(NULL, L"open", image_name_wide_string.c_str(), NULL, NULL, SW_SHOWNORMAL);

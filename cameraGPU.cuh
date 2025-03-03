@@ -48,7 +48,7 @@ public:
     double defocus_angle = 0;  // Variation angle of rays through each pixel
     double focus_dist = 10;    // Distance from camera lookfrom point to plane of perfect focus
 
-    void render(const hittable& world, std::vector<point_light>& lights) {
+    __global__ void render(const hittable& world, std::vector<point_light>& lights) {
         initialize();
 
         std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();

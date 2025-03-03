@@ -19,6 +19,19 @@ public:
         vec3 n = cross(p1 - p0, p2 - p0); // Compute normal using cross product
         normal = unit_vector(n);           // Normalize the normal
         D = dot(normal, p0);               // Plane equation constant
+        uv0 = vec3(0, 0, 0);
+        uv1 = vec3(1, 0, 0);
+        uv2 = vec3(0, 1, 0);
+        set_bounding_box();
+    }
+    // Stationary Triangle Constructor
+    triangle(vec3 p0, vec3 p1, vec3 p2, std::shared_ptr<material> mat, vec3 uv0_para, vec3 uv1_para, vec3 uv2_para)
+        : p0(p0), p1(p1), p2(p2), mat(mat), uv0(uv0_para), uv1(uv1_para), uv2(uv2_para) {
+        // Compute AABB for a stationary triangle
+
+        vec3 n = cross(p1 - p0, p2 - p0); // Compute normal using cross product
+        normal = unit_vector(n);           // Normalize the normal
+        D = dot(normal, p0);               // Plane equation constant
 
         set_bounding_box();
     }

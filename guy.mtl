@@ -1,0 +1,32 @@
+# Blender 4.3.2 MTL File: 'None'
+# www.blender.org
+
+newmtl Object001_mtl
+Ns 20.000006
+Ka 1.000000 1.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 1
+map_Kd C:/Users/graha/Downloads/male-nude/source/Male/Object001_2020-03-30_14-18-23_complete.rpf_converted.jpg
+
+newmtl Object002_mtl
+Ns 20.000006
+Ka 1.000000 1.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 1
+map_Kd C:/Users/graha/Downloads/male-nude/source/Male/Object002_2020-03-30_12-02-43_complete.rpf_converted.jpg
+
+newmtl Object003_mtl
+Ns 20.000006
+Ka 1.000000 1.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 1
+map_Kd C:/Users/graha/Downloads/male-nude/source/Male/Object003_2020-03-30_13-09-28_complete.rpf_converted.jpg
