@@ -5,13 +5,12 @@
 #include "hittable.h"
 #include "sphere.h"
 #include "triangle.h"
-#include "cameraGPU.cuh"
+#include "camera.h"
 #include "quad.h"
 #include "point_light.h"
-//#include "cameraGPU.cuh"
 #include "texture.h"
 #include "constant_medium.h"
-
+#include "mesh.h"
 
 #include <string>
 #include <future>
@@ -26,6 +25,7 @@
 #define STBI_MSC_SECURE_CRT
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
+#include "mesh.h"
 
 // Function to convert const char* to std::wstring
 std::wstring ConvertToWideString(const std::string& narrowString) {
@@ -110,6 +110,7 @@ bool parseFaceVertex(const std::string & facePart, int& vertexIndex) {
     vertexIndex = std::stoi(vertexIndexStr);
     return true;
 }
+
 
 bool loadObj(const std::string path, hittable_list& world, const shared_ptr<lambertian> mat) {
     std::ifstream file(path);
@@ -273,7 +274,7 @@ int main() {
 
 
 
-    std::string image_name_working = "man.png";
+    std::string image_name_working = "NIck.png";
 
     int scene = 7;
 
@@ -543,31 +544,47 @@ int main() {
         auto red = make_shared<lambertian>(color(.65, .05, .05));
         auto grey = make_shared<lambertian>(color(0.1,0.1,0.1));
         auto green = make_shared<lambertian>(color(.12, .45, .15));
-        auto light = make_shared<diffuse_light>(color(10, 10, 10));
+        auto light = make_shared<diffuse_light>(color(20, 20, 20));
         auto checkerT = make_shared<checker_texture_triangle>(0.5, color(0, 0, 0), color(.9, .9, .9));
         auto noiseT = make_shared<noise_texture>(20);
         auto noise = make_shared<lambertian>(noiseT);
         auto checker = make_shared<lambertian>(checkerT);
         auto metalMat = make_shared<metal>(color(0,0,0),0.2);
 
-        if (loadObj("C:/Users/graha/Documents/Visual Studio Projects 2024/Coding Projects/RayTracingOneWeekendApplication/RayTracingOneWeekendApplication/guy.obj", world, male_material)) {
-            std::cout << "Sucessful Loading Object\n";
+        //if (loadObj("C:/Users/graha/Documents/Visual Studio Projects 2024/Coding Projects/RayTracingOneWeekendApplication/RayTracingOneWeekendApplication/car.obj", world, grey)) {
+        //    std::cout << "Sucessful Loading Object\n";
+        //}
+
+        //mesh car;
+        //car.loadObj("C:/Users/graha/Documents/Visual Studio Projects 2024/Coding Projects/RayTracingOneWeekendApplication/RayTracingOneWeekendApplication/car.obj", world, grey);
+        // === Load OBJ file ===
+        mesh car;
+
+        // === Apply a 90-degree rotation on Y-axis ===
+        glm::mat4 transform = glm::mat4(1.0f);
+        //transform = glm::translate(transform, glm::vec3(0, 0, 0));
+        transform = glm::rotate(transform, glm::radians(90.0f), glm::vec3(0, 1, 0));
+
+        // === Load the object and apply the transform ===
+        if (!car.loadObj("car.obj", world, grey, transform)) {
+            std::cerr << "Failed to load OBJ." << std::endl;
+            return -1;
         }
-        
-        world.add(make_shared<quad>(point3(0, 6, 0), vec3(30, 6, 0), vec3(30, 6, 30), light));
+  
+        //world.add(make_shared<quad>(point3(0, 6, 0), vec3(30, 6, 0), vec3(30, 6, 30), light));
         //make_shared<translate>(base, vec3(0, 0, 0));
         world.add(make_shared<sphere>(point3(0, -1005, 0), 1000, grey));
         world.add(make_shared<sphere>(point3(0, 5, -15), 5, light));
 
 
 
-        cam.samples_per_pixel = 200;
+        cam.samples_per_pixel = 20;
         cam.max_depth = 50;
         cam.background = color(0, 0, 0);
 
-        cam.vfov = 8;
-        cam.lookfrom = point3(8, 5, -10);
-        cam.lookat = point3(0, 0.9, 0);
+        cam.vfov = 20;
+        cam.lookfrom = point3(20, 5, -20);
+        cam.lookat = point3(0, 0, 0);
         cam.vup = vec3(0, 1, 0);
         cam.focus_dist = point_distance(cam.lookat, cam.lookfrom)-0.5;
 

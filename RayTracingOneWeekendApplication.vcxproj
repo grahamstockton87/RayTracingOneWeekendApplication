@@ -105,6 +105,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>GLM\glm\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -119,6 +120,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>GLM\glm\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -134,7 +136,6 @@
     <ClInclude Include="aabb.h" />
     <ClInclude Include="bvh.h" />
     <ClInclude Include="camera.h" />
-    <ClInclude Include="cameraGPU.cuh" />
     <ClInclude Include="constant_medium.h" />
     <ClInclude Include="hittable.h" />
     <ClInclude Include="hittable_list.h" />
@@ -150,10 +151,12 @@
     </ClInclude>
     <ClInclude Include="main.h" />
     <ClInclude Include="material.h" />
+    <ClInclude Include="mesh.h" />
     <ClInclude Include="perlin.h" />
     <ClInclude Include="point_light.h" />
     <ClInclude Include="quad.h" />
     <ClInclude Include="ray.h" />
+    <ClInclude Include="render_kernal.cuh" />
     <ClInclude Include="rtweekend.h" />
     <ClInclude Include="rtw_stb_image.h" />
     <ClInclude Include="sphere.h" />

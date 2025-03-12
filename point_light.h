@@ -2,52 +2,29 @@
 #define POINT_LIGHT
 
 #include "vec3.h"
-#include <vector>
+#include <cuda_runtime.h>
 
 using color = vec3;
 
 class point_light {
 public:
-    point_light(point3 position, color intensity, double size)
+    // Constructor to initialize the position, intensity, and size
+    __host__ __device__ point_light(point3 position, color intensity, double size)
         : position(position), intensity(intensity), size(size) {}
 
-    point3 get_position() const { return position; }
-    color get_intensity() const { return intensity; }
-    double get_size() const { return size; }  // Get size of the point light
+    // Getter for position (device-compatible)
+    __host__ __device__ point3 get_position() const { return position; }
 
+    // Getter for intensity (device-compatible)
+    __host__ __device__ color get_intensity() const { return intensity; }
+
+    // Getter for size (device-compatible)
+    __host__ __device__ double get_size() const { return size; }
 
 private:
-    point3 position;
-    color intensity;
-    double size;  // The size of the point light
+    point3 position;  // Position of the light
+    color intensity;  // Intensity of the light
+    double size;      // Size of the light
 };
 
 #endif // !POINT_LIGHT
-
-
-
-
-//#ifndef POINT_LIGHT
-//#define POINT_LIGHT
-//
-//#include "vec3.h"
-//#include <vector>
-//
-//using color = vec3;
-//
-//class point_light{
-//public:
-//    point_light(point3 position, color intensity, double size)
-//        : position(position), intensity(intensity), size(size) {}
-//
-//    point3 get_position() const { return position; }
-//    color get_intensity() const { return intensity; }
-//    double get_size() const { return size; }  // Get size of the point light
-//
-//private:
-//    point3 position;
-//    color intensity;
-//    double size;  // The size of the point light
-//};
-//
-//#endif // !POINT_LIGHT

@@ -4,6 +4,7 @@
 #include "ray.h"
 #include "interval.h"
 #include "aabb.h"
+#include "rtweekend.h"
 
 class material;
 
