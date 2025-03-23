@@ -1,17 +1,6 @@
-﻿  main.cpp
-C:\Users\graha\Documents\Visual Studio Projects 2024\Coding Projects\RayTracingOneWeekendApplication\RayTracingOneWeekendApplication\vec3.h(104,14): warning C4804: '<=': unsafe use of type 'bool' in operation
-C:\Users\graha\Documents\Visual Studio Projects 2024\Coding Projects\RayTracingOneWeekendApplication\RayTracingOneWeekendApplication\triangle.h(64,19): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\graha\Documents\Visual Studio Projects 2024\Coding Projects\RayTracingOneWeekendApplication\RayTracingOneWeekendApplication\triangle.h(88,21): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\graha\Documents\Visual Studio Projects 2024\Coding Projects\RayTracingOneWeekendApplication\RayTracingOneWeekendApplication\triangle.h(89,20): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\graha\Documents\Visual Studio Projects 2024\Coding Projects\RayTracingOneWeekendApplication\RayTracingOneWeekendApplication\triangle.h(90,21): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\graha\Documents\Visual Studio Projects 2024\Coding Projects\RayTracingOneWeekendApplication\RayTracingOneWeekendApplication\camera.h(116,21): warning C4244: 'initializing': conversion from '_Rep' to 'double', possible loss of data
-          with
-          [
-              _Rep=__int64
-          ]
-  Generating code
-  5 of 3016 functions ( 0.2%) were compiled, the rest were copied from previous compilation.
-    1 functions were new in current compilation
-    11 functions had inline decision re-evaluated but remain unchanged
+﻿  Generating code
+  8 of 3072 functions ( 0.3%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    10 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
   RayTracingOneWeekendApplication.vcxproj -> C:\Users\graha\Documents\Visual Studio Projects 2024\Coding Projects\RayTracingOneWeekendApplication\x64\Release\RayTracingOneWeekendApplication.exe

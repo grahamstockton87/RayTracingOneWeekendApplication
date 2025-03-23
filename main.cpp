@@ -551,6 +551,9 @@ int main() {
         auto checker = make_shared<lambertian>(checkerT);
         auto metalMat = make_shared<metal>(color(0,0,0),0.2);
 
+        auto corgi_texture = make_shared<image_texture>("corgi_diffuse.jpeg");
+        auto corgi_material = make_shared<lambertian>(corgi_texture);
+
         //if (loadObj("C:/Users/graha/Documents/Visual Studio Projects 2024/Coding Projects/RayTracingOneWeekendApplication/RayTracingOneWeekendApplication/car.obj", world, grey)) {
         //    std::cout << "Sucessful Loading Object\n";
         //}
@@ -559,14 +562,16 @@ int main() {
         //car.loadObj("C:/Users/graha/Documents/Visual Studio Projects 2024/Coding Projects/RayTracingOneWeekendApplication/RayTracingOneWeekendApplication/car.obj", world, grey);
         // === Load OBJ file ===
         mesh car;
-
+        car.rotate(90, glm::vec3(0, 1, 0));
         // === Apply a 90-degree rotation on Y-axis ===
         glm::mat4 transform = glm::mat4(1.0f);
-        //transform = glm::translate(transform, glm::vec3(0, 0, 0));
-        transform = glm::rotate(transform, glm::radians(90.0f), glm::vec3(0, 1, 0));
+        //transform = glm::translate(transform, glm::vec3(3, 0, 0));
+        //transform = glm::rotate(transform, glm::radians(90.0f), glm::vec3(0, 1, 0));
+        //glm::vec3 scaleFactor(1.5f, 1.5f, 1.5f);
+        //transform = glm::scale(transform, scaleFactor);
 
         // === Load the object and apply the transform ===
-        if (!car.loadObj("car.obj", world, grey, transform)) {
+        if (!car.loadObj("corgi.obj", world, corgi_material, transform)) {
             std::cerr << "Failed to load OBJ." << std::endl;
             return -1;
         }
@@ -574,17 +579,17 @@ int main() {
         //world.add(make_shared<quad>(point3(0, 6, 0), vec3(30, 6, 0), vec3(30, 6, 30), light));
         //make_shared<translate>(base, vec3(0, 0, 0));
         world.add(make_shared<sphere>(point3(0, -1005, 0), 1000, grey));
-        world.add(make_shared<sphere>(point3(0, 5, -15), 5, light));
+        world.add(make_shared<sphere>(point3(0, 10, -15), 5, light));
 
 
 
-        cam.samples_per_pixel = 20;
+        cam.samples_per_pixel = 200;
         cam.max_depth = 50;
         cam.background = color(0, 0, 0);
 
-        cam.vfov = 20;
+        cam.vfov = 30;
         cam.lookfrom = point3(20, 5, -20);
-        cam.lookat = point3(0, 0, 0);
+        cam.lookat = point3(5, 5, 0);
         cam.vup = vec3(0, 1, 0);
         cam.focus_dist = point_distance(cam.lookat, cam.lookfrom)-0.5;
 
@@ -624,7 +629,6 @@ int main() {
     std::cout << "Rendering Image: " << cam.image_name << std::endl;
     // Render
     cam.render(world, lights);
-
 
     // Convert file name to wide string
     std::wstring image_name_wide_string = ConvertToWideString(cam.image_name);

@@ -47,9 +47,6 @@
     <ClInclude Include="interval.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="camera.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="triangle.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -74,17 +71,16 @@
     <ClInclude Include="quad.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="main.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="point_light.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="constant_medium.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="render_kernal.cuh" />
     <ClInclude Include="mesh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="camera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

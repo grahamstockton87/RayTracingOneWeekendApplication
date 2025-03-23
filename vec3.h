@@ -1,6 +1,9 @@
 #ifndef VEC3_H
 #define VEC3_H
 
+#include <cstdlib>  // For rand()
+#include <curand_kernel.h> // CUDA random number library
+#include "rtweekend.h"
 
 class vec3 {
 public:
@@ -44,9 +47,11 @@ public:
 	double length_squared() const {
 		return pow(e[0], 2) + pow(e[1], 2) + pow(e[2], 2);
 	}
+
 	static vec3 random() {
 		return vec3(random_double(), random_double(), random_double());
 	}
+
 	static vec3 random(double min, double max) {
 		return vec3(random_double(min, max), random_double(min, max), random_double(min, max));
 	}
@@ -56,6 +61,9 @@ public:
 		return (std::fabs(e[0]) < s) && (std::fabs(e[1]) < s) && (std::fabs(e[2]) < s);
 	}
 };
+
+
+
 
 
 using point3 = vec3;

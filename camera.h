@@ -43,7 +43,6 @@ public:
 	int max_depth = 10;
 	color background = vec3(0, 0, 0); // scene background color
 
-	// lower values = more zoomed in; higher values = more zoomed out
 	double vfov = 90; // field of view
 	point3 lookfrom = point3(0, 0, 0); // point cam looking from
 	point3 lookat = point3(0, 0, -1); // point cam looking at 
@@ -271,9 +270,6 @@ private:
 
 		return result;
 	}
-
-
-
 
 };
 

@@ -5,6 +5,8 @@
 #include "hittable.h"
 #include "interval.h"
 #include "aabb.h"
+#include <glm.hpp>
+#include <gtc/matrix_transform.hpp>
 #include <memory>  // Include memory for shared_ptr
 
 constexpr double kEpsilon = 1e-8;
@@ -19,14 +21,14 @@ public:
         vec3 n = cross(p1 - p0, p2 - p0); // Compute normal using cross product
         normal = unit_vector(n);           // Normalize the normal
         D = dot(normal, p0);               // Plane equation constant
-        uv0 = vec3(0, 0, 0);
-        uv1 = vec3(1, 0, 0);
-        uv2 = vec3(0, 1, 0);
+        uv0 = glm::vec2(0, 0);
+        uv1 = glm::vec2(1, 0);
+        uv2 = glm::vec2(0, 1);
         set_bounding_box();
     }
     // Stationary Triangle Constructor
-    triangle(vec3 p0, vec3 p1, vec3 p2, std::shared_ptr<material> mat, vec3 uv0_para, vec3 uv1_para, vec3 uv2_para)
-        : p0(p0), p1(p1), p2(p2), mat(mat), uv0(uv0_para), uv1(uv1_para), uv2(uv2_para) {
+    triangle(vec3 p0, vec3 p1, vec3 p2, std::shared_ptr<material> mat, glm::vec2 uv0, glm::vec2 uv1, glm::vec2 uv2)
+        : p0(p0), p1(p1), p2(p2), mat(mat), uv0(uv0), uv1(uv1), uv2(uv2) {
         // Compute AABB for a stationary triangle
 
         vec3 n = cross(p1 - p0, p2 - p0); // Compute normal using cross product
@@ -34,6 +36,12 @@ public:
         D = dot(normal, p0);               // Plane equation constant
 
         set_bounding_box();
+
+        uv0 = glm::vec2(uv0.x - floor(uv0.x), uv0.y - floor(uv0.y));
+        uv1 = glm::vec2(uv1.x - floor(uv1.x), uv1.y - floor(uv1.y));
+        uv2 = glm::vec2(uv2.x - floor(uv2.x), uv2.y - floor(uv2.y));
+
+
     }
     virtual void set_bounding_box() {
         vec3 min_point(
@@ -92,8 +100,8 @@ public:
         if (!is_interior(alpha, beta, rec)) return false;
 
         // Interpolate UV coordinates based on barycentric coordinates
-        rec.u = alpha * uv0.x() + beta * uv1.x() + gamma * uv2.x();
-        rec.v = alpha * uv0.y() + beta * uv1.y() + gamma * uv2.y();
+        rec.u = alpha * uv0.x + beta * uv1.x + gamma * uv2.x;
+        rec.v = alpha * uv0.y + beta * uv1.y + gamma * uv2.y;
 
         // Set hit record
         rec.t = t;
@@ -125,13 +133,10 @@ private:
         v2 = p2;
     }
 
-
-
-
 private:
-    vec3 uv0 = vec3(0, 0, 0);
-    vec3 uv1 = vec3(1, 0, 0);
-    vec3 uv2 = vec3(0, 1, 0);
+    glm::vec2 uv0;
+    glm::vec2 uv1;
+    glm::vec2 uv2;
 
     vec3 normal;   // Normal of the triangle plane
     double D;      // Plane equation constant
