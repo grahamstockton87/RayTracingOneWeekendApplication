@@ -135,7 +135,7 @@
   <ItemGroup>
     <ClInclude Include="aabb.h" />
     <ClInclude Include="bvh.h" />
-    <ClInclude Include="camera.h" />
+    <CudaCompile Include="camera.cuh" />
     <ClInclude Include="constant_medium.h" />
     <ClInclude Include="hittable.h" />
     <ClInclude Include="hittable_list.h" />

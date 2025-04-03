@@ -1,6 +1,15 @@
-﻿  Generating code
-  8 of 3072 functions ( 0.3%) were compiled, the rest were copied from previous compilation.
-    0 functions were new in current compilation
-    10 functions had inline decision re-evaluated but remain unchanged
-  Finished generating code
-  RayTracingOneWeekendApplication.vcxproj -> C:\Users\graha\Documents\Visual Studio Projects 2024\Coding Projects\RayTracingOneWeekendApplication\x64\Release\RayTracingOneWeekendApplication.exe
+﻿  Compiling CUDA source file camera.cuh...
+  
+  C:\Users\graha\Documents\Visual Studio Projects 2024\Coding Projects\RayTracingOneWeekendApplication\RayTracingOneWeekendApplication>"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.8\bin\nvcc.exe" -gencode=arch=compute_52,code=\"sm_52,compute_52\" --use-local-env -ccbin "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.37.32822\bin\HostX64\x64" -x cu   -IGLM\glm\ -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.8\include" -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.8\include"     --keep-dir x64\Release  -maxrregcount=0    --machine 64 --compile -cudart static    -DNDEBUG -D_CONSOLE -D_UNICODE -DUNICODE -D_CRT_SECURE_NO_WARNINGS -Xcompiler "/EHsc /W3 /nologo /O2 /FS   /MD " -Xcompiler "/Fdx64\Release\vc143.pdb" -o "C:\Users\graha\Documents\Visual Studio Projects 2024\Coding Projects\RayTracingOneWeekendApplication\RayTracingOneWeekendApplication\x64\Release\camera.cuh.obj" "C:\Users\graha\Documents\Visual Studio Projects 2024\Coding Projects\RayTracingOneWeekendApplication\RayTracingOneWeekendApplication\camera.cuh" 
+C:\Users\graha\Documents\Visual Studio Projects 2024\Coding Projects\RayTracingOneWeekendApplication\RayTracingOneWeekendApplication\camera.cuh(44): error : identifier "camera" is undefined
+    __declspec(__global__) void render_kernel(uint8_t* pixels, const hittable* world, const point_light* lights, int image_width, int image_height, camera& cam) {
+                                                                                                                                                    ^
+  
+C:\Users\graha\Documents\Visual Studio Projects 2024\Coding Projects\RayTracingOneWeekendApplication\RayTracingOneWeekendApplication\camera.cuh(115): error : identifier "self" is undefined
+    		render_kernel<<<gridSize, blockSize>>>(pixels, d_world, d_lights, image_width, image_height, self);
+    		                                                                                             ^
+  
+  2 errors detected in the compilation of "C:/Users/graha/Documents/Visual Studio Projects 2024/Coding Projects/RayTracingOneWeekendApplication/RayTracingOneWeekendApplication/camera.cuh".
+CUDACOMPILE : nvcc warning : Support for offline compilation for architectures prior to '<compute/sm/lto>_75' will be removed in a future release (Use -Wno-deprecated-gpu-targets to suppress warning).
+  camera.cuh
+C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Microsoft\VC\v170\BuildCustomizations\CUDA 12.8.targets(800,9): error MSB3721: The command ""C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.8\bin\nvcc.exe" -gencode=arch=compute_52,code=\"sm_52,compute_52\" --use-local-env -ccbin "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.37.32822\bin\HostX64\x64" -x cu   -IGLM\glm\ -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.8\include" -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.8\include"     --keep-dir x64\Release  -maxrregcount=0    --machine 64 --compile -cudart static    -DNDEBUG -D_CONSOLE -D_UNICODE -DUNICODE -D_CRT_SECURE_NO_WARNINGS -Xcompiler "/EHsc /W3 /nologo /O2 /FS   /MD " -Xcompiler "/Fdx64\Release\vc143.pdb" -o "C:\Users\graha\Documents\Visual Studio Projects 2024\Coding Projects\RayTracingOneWeekendApplication\RayTracingOneWeekendApplication\x64\Release\camera.cuh.obj" "C:\Users\graha\Documents\Visual Studio Projects 2024\Coding Projects\RayTracingOneWeekendApplication\RayTracingOneWeekendApplication\camera.cuh"" exited with code 2.

@@ -161,12 +161,6 @@ public:
         applyTransform(translationMatrix);
     }
 
-    /// Upload the mesh to CUDA memory (optional)
-    void uploadToCuda(uint8_t*& d_mesh) {
-        cudaMalloc(&d_mesh, mesh_matrices.size() * sizeof(glm::mat4));
-        cudaMemcpy(d_mesh, mesh_matrices.data(), mesh_matrices.size() * sizeof(glm::mat4), cudaMemcpyHostToDevice);
-    }
-
 public:
     std::vector<glm::mat4> mesh_matrices;
 };

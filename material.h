@@ -136,4 +136,40 @@ public:
 private:
 	shared_ptr<texture> tex;
 };
+
+class specular : public material {
+public:
+	specular(const color& albedo, double shininess)
+		: albedo(albedo), shininess(shininess) {}
+
+	bool scatter(const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered) const override {
+		// Compute the reflected direction based on the incident ray and surface normal
+		vec3 reflected = reflect(unit_vector(r_in.direction()), rec.normal);
+
+		// Introduce a small amount of diffuse scattering to simulate roughness
+		vec3 diffuse = random_on_hemisphere(rec.normal);
+
+		// Choose reflection or diffuse based on shininess (higher shininess = more reflective)
+		double reflection_factor = std::pow(1.0 - dot(reflected, unit_vector(r_in.direction())), shininess);
+
+		// Blend between diffuse and reflection based on the shininess
+		vec3 scatter_direction = reflection_factor * reflected + (1.0 - reflection_factor) * diffuse;
+
+		// Make sure the scattered direction is not too small
+		if (scatter_direction.near_zero()) {
+			scatter_direction = rec.normal;
+		}
+
+		// Create the scattered ray and attenuation
+		scattered = ray(rec.p, scatter_direction, r_in.time());
+		attenuation = albedo; // The material's albedo determines the intensity of the reflected light
+		return true;
+	}
+
+private:
+	color albedo;      // The color of the material
+	double shininess;  // A factor that controls how specular the surface is (higher = shinier)
+};
+
+
 #endif 

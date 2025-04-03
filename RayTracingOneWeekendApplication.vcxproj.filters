@@ -80,8 +80,10 @@
     <ClInclude Include="mesh.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="camera.h">
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="camera.cuh">
       <Filter>Header Files</Filter>
-    </ClInclude>
+    </CudaCompile>
   </ItemGroup>
 </Project>

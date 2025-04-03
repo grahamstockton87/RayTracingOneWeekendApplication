@@ -2,7 +2,6 @@
 #define VEC3_H
 
 #include <cstdlib>  // For rand()
-#include <curand_kernel.h> // CUDA random number library
 #include "rtweekend.h"
 
 class vec3 {
